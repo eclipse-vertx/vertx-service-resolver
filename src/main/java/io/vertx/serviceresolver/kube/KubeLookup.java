@@ -18,9 +18,7 @@ import io.vertx.serviceresolver.kube.impl.KubeResolverImpl;
  * Kubernetes lookup.
  */
 public interface KubeLookup {
-
   static ServiceLookup create(KubeLookupOptions options) {
-    return new ServiceLookupImpl((vertx, lookup) -> new KubeResolverImpl(vertx, options.getNamespace(), options.getHost(), options.getPort(), options.getBearerToken(), options.getHttpClientOptions(), options.getWebSocketClientOptions()));
+    return new ServiceLookupImpl((vertx, lookup) -> new KubeResolverImpl(vertx, lookup.loadBalancer, options));
   }
-
 }

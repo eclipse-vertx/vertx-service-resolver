@@ -23,9 +23,14 @@ public abstract class ResolverBase<T extends ServiceState<?>> implements Address
   protected final Vertx vertx;
   protected final LoadBalancer loadBalancer;
 
-  public ResolverBase(Vertx vertx) {
+  public ResolverBase(Vertx vertx, LoadBalancer loadBalancer) {
+
+    if (loadBalancer == null) {
+      loadBalancer = LoadBalancer.ROUND_ROBIN;
+    }
+
     this.vertx = vertx;
-    this.loadBalancer = LoadBalancer.ROUND_ROBIN;
+    this.loadBalancer = loadBalancer;
   }
 
   @Override

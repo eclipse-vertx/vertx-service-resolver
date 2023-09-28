@@ -18,7 +18,9 @@ import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.impl.ResolverBase;
+import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 import io.vertx.serviceresolver.srv.SrvLookup;
+import io.vertx.serviceresolver.srv.SrvLookupOptions;
 
 import java.util.List;
 
@@ -28,10 +30,10 @@ public class SrvResolverImpl extends ResolverBase<SrvServiceState> implements Sr
   final int port;
   final DnsClient client;
 
-  public SrvResolverImpl(VertxInternal vertx, String host, int port) {
-    super(vertx);
-    this.host = host;
-    this.port = port;
+  public SrvResolverImpl(VertxInternal vertx, LoadBalancer loadBalancer, SrvLookupOptions options) {
+    super(vertx, loadBalancer);
+    this.host = options.getHost();
+    this.port = options.getPort();
     this.client = vertx.createDnsClient(port, host);
   }
 

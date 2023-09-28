@@ -6,12 +6,11 @@ import io.vertx.serviceresolver.ServiceLookup;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class ServiceLookupImpl implements ServiceLookup {
 
   private final BiFunction<Vertx, ServiceLookupImpl, AddressResolver<?, ?, ?>> provider;
-  private LoadBalancer loadBalancer;
+  public LoadBalancer loadBalancer;
 
   public ServiceLookupImpl(BiFunction<Vertx, ServiceLookupImpl, AddressResolver<?, ?, ?>> provider) {
     this.provider = provider;
@@ -24,6 +23,7 @@ public class ServiceLookupImpl implements ServiceLookup {
 
   @Override
   public ServiceLookup withLoadBalancer(LoadBalancer loadBalancer) {
-    return null;
+    this.loadBalancer = loadBalancer;
+    return this;
   }
 }

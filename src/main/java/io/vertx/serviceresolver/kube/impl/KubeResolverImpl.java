@@ -20,6 +20,8 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.impl.ResolverBase;
 import io.vertx.serviceresolver.kube.KubeLookup;
+import io.vertx.serviceresolver.kube.KubeLookupOptions;
+import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
 import static io.vertx.core.http.HttpMethod.GET;
 
@@ -32,12 +34,18 @@ public class KubeResolverImpl extends ResolverBase<KubeServiceState> {
   final String namespace;
   final String bearerToken;
 
-  public KubeResolverImpl(Vertx vertx, String namespace, String host, int port, String bearerToken, HttpClientOptions httpClientOptions, WebSocketClientOptions wsClientOptions) {
-    super(vertx);
-    this.namespace = namespace;
-    this.host = host;
-    this.port = port;
-    this.bearerToken = bearerToken;
+  public KubeResolverImpl(Vertx vertx,
+                          LoadBalancer loadBalancer,
+                          KubeLookupOptions options) {
+    super(vertx, loadBalancer);
+
+    HttpClientOptions httpClientOptions = options.getHttpClientOptions();
+    WebSocketClientOptions wsClientOptions = options.getWebSocketClientOptions();
+
+    this.namespace = options.getNamespace();
+    this.host = options.getHost();
+    this.port = options.getPort();
+    this.bearerToken = options.getBearerToken();
     this.wsClient = vertx.createWebSocketClient(wsClientOptions == null ? new WebSocketClientOptions() : wsClientOptions);
     this.httpClient = vertx.createHttpClient(httpClientOptions == null ? new HttpClientOptions() : httpClientOptions);
   }

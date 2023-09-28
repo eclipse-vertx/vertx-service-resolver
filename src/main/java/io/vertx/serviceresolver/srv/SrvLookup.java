@@ -21,6 +21,6 @@ import io.vertx.serviceresolver.srv.impl.SrvResolverImpl;
 public interface SrvLookup {
 
   static ServiceLookup create(SrvLookupOptions options) {
-    return new ServiceLookupImpl((vertx, lookup) -> new SrvResolverImpl((VertxInternal) vertx, options.getHost(), options.getPort()));
+    return new ServiceLookupImpl((vertx, lookup) -> new SrvResolverImpl((VertxInternal) vertx, lookup.loadBalancer, options));
   }
 }
