@@ -114,7 +114,7 @@ public class KubeResolverOptions {
    * JSON constructor
    */
   public KubeResolverOptions(JsonObject json) {
-    KubeLookupOptionsConverter.fromJson(json, this);
+    KubeResolverOptionsConverter.fromJson(json, this);
   }
 
   public String getHost() {

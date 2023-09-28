@@ -1,15 +1,17 @@
 package io.vertx.serviceresolver.srv;
 
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.impl.JsonUtil;
-
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 
 /**
- * Converter and mapper for {@link SrvResolverOptions}.
- * NOTE: This class has been automatically generated from the {@link SrvResolverOptions} original class using Vert.x codegen.
+ * Converter and mapper for {@link io.vertx.serviceresolver.srv.SrvResolverOptions}.
+ * NOTE: This class has been automatically generated from the {@link io.vertx.serviceresolver.srv.SrvResolverOptions} original class using Vert.x codegen.
  */
-public class SrvLookupOptionsConverter {
+public class SrvResolverOptionsConverter {
 
 
   private static final Base64.Decoder BASE64_DECODER = JsonUtil.BASE64_DECODER;

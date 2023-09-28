@@ -28,7 +28,7 @@ public class SrvResolverOptions {
   }
 
   public SrvResolverOptions(JsonObject json) {
-    SrvLookupOptionsConverter.fromJson(json, this);
+    SrvResolverOptionsConverter.fromJson(json, this);
   }
 
   public String getHost() {
