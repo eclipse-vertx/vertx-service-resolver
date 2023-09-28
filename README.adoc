@@ -1,0 +1,17 @@
+= Vert.x Service Resolver
+
+image:https://github.com/eclipse-vertx/vertx-service-resolver/actions/workflows/ci-5.x.yml/badge.svg["Build Status (5.x)",link="https://github.com/eclipse-vertx/service-resolver/actions/workflows/ci-5.x.yml"]
+
+A service discovery and load balancer for Vert.x clients
+
+Integrates natively with Vert.x HTTP client.
+
+Supports Kubernetes and DNS discovery.
+
+== Snapshots
+
+Snapshots are deployed in Sonatype OSS repository: https://s01.oss.sonatype.org/content/repositories/snapshots/io/vertx/vertx-service-resolver/
+
+== License
+
+Apache License - Version 2.0
