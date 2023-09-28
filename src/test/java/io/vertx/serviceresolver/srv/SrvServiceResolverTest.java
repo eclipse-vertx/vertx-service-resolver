@@ -21,11 +21,11 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
     dnsServer = new FakeDNSServer();
     dnsServer.start();
 
-    SrvLookupOptions options = new SrvLookupOptions()
+    SrvResolverOptions options = new SrvResolverOptions()
       .setHost(FakeDNSServer.IP_ADDRESS)
       .setPort(FakeDNSServer.PORT);
 
-    client = vertx.httpClientBuilder().withLookup(SrvLookup.create(options)).build();
+    client = vertx.httpClientBuilder().withAddressResolver(SrvResolver.create(options)).build();
   }
 
   public void tearDown() throws Exception {

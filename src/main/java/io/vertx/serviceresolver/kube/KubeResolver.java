@@ -10,15 +10,15 @@
  */
 package io.vertx.serviceresolver.kube;
 
-import io.vertx.serviceresolver.ServiceLookup;
-import io.vertx.serviceresolver.impl.ServiceLookupImpl;
+import io.vertx.serviceresolver.ServiceResolver;
+import io.vertx.serviceresolver.impl.ServiceResolverImpl;
 import io.vertx.serviceresolver.kube.impl.KubeResolverImpl;
 
 /**
  * Kubernetes lookup.
  */
-public interface KubeLookup {
-  static ServiceLookup create(KubeLookupOptions options) {
-    return new ServiceLookupImpl((vertx, lookup) -> new KubeResolverImpl(vertx, lookup.loadBalancer, options));
+public interface KubeResolver {
+  static ServiceResolver create(KubeResolverOptions options) {
+    return new ServiceResolverImpl((vertx, lookup) -> new KubeResolverImpl(vertx, lookup.loadBalancer, options));
   }
 }

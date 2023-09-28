@@ -11,16 +11,16 @@
 package io.vertx.serviceresolver.srv;
 
 import io.vertx.core.impl.VertxInternal;
-import io.vertx.serviceresolver.ServiceLookup;
-import io.vertx.serviceresolver.impl.ServiceLookupImpl;
+import io.vertx.serviceresolver.ServiceResolver;
+import io.vertx.serviceresolver.impl.ServiceResolverImpl;
 import io.vertx.serviceresolver.srv.impl.SrvResolverImpl;
 
 /**
  * DNS Srv lookup.
  */
-public interface SrvLookup {
+public interface SrvResolver {
 
-  static ServiceLookup create(SrvLookupOptions options) {
-    return new ServiceLookupImpl((vertx, lookup) -> new SrvResolverImpl((VertxInternal) vertx, lookup.loadBalancer, options));
+  static ServiceResolver create(SrvResolverOptions options) {
+    return new ServiceResolverImpl((vertx, lookup) -> new SrvResolverImpl((VertxInternal) vertx, lookup.loadBalancer, options));
   }
 }

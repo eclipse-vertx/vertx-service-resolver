@@ -19,8 +19,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.impl.ResolverBase;
-import io.vertx.serviceresolver.kube.KubeLookup;
-import io.vertx.serviceresolver.kube.KubeLookupOptions;
+import io.vertx.serviceresolver.kube.KubeResolverOptions;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
 import static io.vertx.core.http.HttpMethod.GET;
@@ -36,7 +35,7 @@ public class KubeResolverImpl extends ResolverBase<KubeServiceState> {
 
   public KubeResolverImpl(Vertx vertx,
                           LoadBalancer loadBalancer,
-                          KubeLookupOptions options) {
+                          KubeResolverOptions options) {
     super(vertx, loadBalancer);
 
     HttpClientOptions httpClientOptions = options.getHttpClientOptions();

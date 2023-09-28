@@ -14,20 +14,20 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 @DataObject(generateConverter = true, publicConverter = false)
-public class SrvLookupOptions {
+public class SrvResolverOptions {
 
   private String host;
   private int port;
 
-  public SrvLookupOptions() {
+  public SrvResolverOptions() {
   }
 
-  public SrvLookupOptions(SrvLookupOptions other) {
+  public SrvResolverOptions(SrvResolverOptions other) {
     this.host = other.host;
     this.port = other.port;
   }
 
-  public SrvLookupOptions(JsonObject json) {
+  public SrvResolverOptions(JsonObject json) {
     SrvLookupOptionsConverter.fromJson(json, this);
   }
 
@@ -35,7 +35,7 @@ public class SrvLookupOptions {
     return host;
   }
 
-  public SrvLookupOptions setHost(String host) {
+  public SrvResolverOptions setHost(String host) {
     this.host = host;
     return this;
   }
@@ -44,7 +44,7 @@ public class SrvLookupOptions {
     return port;
   }
 
-  public SrvLookupOptions setPort(int port) {
+  public SrvResolverOptions setPort(int port) {
     this.port = port;
     return this;
   }

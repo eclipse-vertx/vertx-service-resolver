@@ -14,7 +14,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.spi.lookup.AddressResolver;
+import io.vertx.core.spi.net.AddressResolver;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 

@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 @DataObject(generateConverter = true, publicConverter = false)
-public class KubeLookupOptions {
+public class KubeResolverOptions {
 
   private static final String KUBERNETES_SERVICE_HOST = "KUBERNETES_SERVICE_HOST";
   private static final String KUBERNETES_SERVICE_PORT = "KUBERNETES_SERVICE_PORT";
@@ -89,7 +89,7 @@ public class KubeLookupOptions {
   /**
    * Constructor with default options, those might have been set from the pod environment when running in a pod.
    */
-  public KubeLookupOptions() {
+  public KubeResolverOptions() {
     host = DEFAULT_HOST;
     port = DEFAULT_PORT;
     namespace = DEFAULT_NAMESPACE;
@@ -101,7 +101,7 @@ public class KubeLookupOptions {
   /**
    * Default constructor.
    */
-  public KubeLookupOptions(KubeLookupOptions other) {
+  public KubeResolverOptions(KubeResolverOptions other) {
     this.host = other.host;
     this.port = other.port;
     this.namespace = other.namespace;
@@ -113,7 +113,7 @@ public class KubeLookupOptions {
   /**
    * JSON constructor
    */
-  public KubeLookupOptions(JsonObject json) {
+  public KubeResolverOptions(JsonObject json) {
     KubeLookupOptionsConverter.fromJson(json, this);
   }
 
@@ -121,7 +121,7 @@ public class KubeLookupOptions {
     return host;
   }
 
-  public KubeLookupOptions setHost(String host) {
+  public KubeResolverOptions setHost(String host) {
     this.host = host;
     return this;
   }
@@ -130,7 +130,7 @@ public class KubeLookupOptions {
     return port;
   }
 
-  public KubeLookupOptions setPort(int port) {
+  public KubeResolverOptions setPort(int port) {
     this.port = port;
     return this;
   }
@@ -139,7 +139,7 @@ public class KubeLookupOptions {
     return namespace;
   }
 
-  public KubeLookupOptions setNamespace(String namespace) {
+  public KubeResolverOptions setNamespace(String namespace) {
     this.namespace = namespace;
     return this;
   }
@@ -148,7 +148,7 @@ public class KubeLookupOptions {
     return bearerToken;
   }
 
-  public KubeLookupOptions setBearerToken(String bearerToken) {
+  public KubeResolverOptions setBearerToken(String bearerToken) {
     this.bearerToken = bearerToken;
     return this;
   }
@@ -157,7 +157,7 @@ public class KubeLookupOptions {
     return httpClientOptions;
   }
 
-  public KubeLookupOptions setHttpClientOptions(HttpClientOptions httpClientOptions) {
+  public KubeResolverOptions setHttpClientOptions(HttpClientOptions httpClientOptions) {
     this.httpClientOptions = httpClientOptions;
     return this;
   }
@@ -166,7 +166,7 @@ public class KubeLookupOptions {
     return webSocketClientOptions;
   }
 
-  public KubeLookupOptions setWebSocketClientOptions(WebSocketClientOptions webSocketClientOptions) {
+  public KubeResolverOptions setWebSocketClientOptions(WebSocketClientOptions webSocketClientOptions) {
     this.webSocketClientOptions = webSocketClientOptions;
     return this;
   }

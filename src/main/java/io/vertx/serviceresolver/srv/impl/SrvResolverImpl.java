@@ -19,18 +19,18 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.impl.ResolverBase;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
-import io.vertx.serviceresolver.srv.SrvLookup;
-import io.vertx.serviceresolver.srv.SrvLookupOptions;
+import io.vertx.serviceresolver.srv.SrvResolver;
+import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
 import java.util.List;
 
-public class SrvResolverImpl extends ResolverBase<SrvServiceState> implements SrvLookup {
+public class SrvResolverImpl extends ResolverBase<SrvServiceState> implements SrvResolver {
 
   final String host;
   final int port;
   final DnsClient client;
 
-  public SrvResolverImpl(VertxInternal vertx, LoadBalancer loadBalancer, SrvLookupOptions options) {
+  public SrvResolverImpl(VertxInternal vertx, LoadBalancer loadBalancer, SrvResolverOptions options) {
     super(vertx, loadBalancer);
     this.host = options.getHost();
     this.port = options.getPort();

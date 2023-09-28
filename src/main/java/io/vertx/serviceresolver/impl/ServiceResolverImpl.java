@@ -1,18 +1,18 @@
 package io.vertx.serviceresolver.impl;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.spi.lookup.AddressResolver;
-import io.vertx.serviceresolver.ServiceLookup;
+import io.vertx.core.spi.net.AddressResolver;
+import io.vertx.serviceresolver.ServiceResolver;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
 import java.util.function.BiFunction;
 
-public class ServiceLookupImpl implements ServiceLookup {
+public class ServiceResolverImpl implements ServiceResolver {
 
-  private final BiFunction<Vertx, ServiceLookupImpl, AddressResolver<?, ?, ?>> provider;
+  private final BiFunction<Vertx, ServiceResolverImpl, AddressResolver<?, ?, ?>> provider;
   public LoadBalancer loadBalancer;
 
-  public ServiceLookupImpl(BiFunction<Vertx, ServiceLookupImpl, AddressResolver<?, ?, ?>> provider) {
+  public ServiceResolverImpl(BiFunction<Vertx, ServiceResolverImpl, AddressResolver<?, ?, ?>> provider) {
     this.provider = provider;
   }
 
@@ -22,7 +22,7 @@ public class ServiceLookupImpl implements ServiceLookup {
   }
 
   @Override
-  public ServiceLookup withLoadBalancer(LoadBalancer loadBalancer) {
+  public ServiceResolver withLoadBalancer(LoadBalancer loadBalancer) {
     this.loadBalancer = loadBalancer;
     return this;
   }

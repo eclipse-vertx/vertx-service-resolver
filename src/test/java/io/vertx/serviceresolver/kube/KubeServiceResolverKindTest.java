@@ -58,13 +58,13 @@ public class KubeServiceResolverKindTest extends KubeServiceResolverTestBase {
       .setSsl(true)
       .setKeyCertOptions(keyCerts)
       .setTrustOptions(trust);
-    KubeLookupOptions options = new KubeLookupOptions()
+    KubeResolverOptions options = new KubeResolverOptions()
       .setNamespace(kubernetesMocking.defaultNamespace())
       .setHost(url.getHost())
       .setPort(url.getPort())
       .setHttpClientOptions(httpClientOptions)
       .setWebSocketClientOptions(wsClientOptions);
-    client = vertx.httpClientBuilder().withLookup(KubeLookup.create(options)).build();
+    client = vertx.httpClientBuilder().withAddressResolver(KubeResolver.create(options)).build();
   }
 
   private String determineHostAddress() {

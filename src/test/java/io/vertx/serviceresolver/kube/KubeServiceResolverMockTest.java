@@ -29,7 +29,7 @@ public class KubeServiceResolverMockTest extends KubeServiceResolverTestBase {
     proxy.port(1234);
     proxy.start();
 
-    KubeLookupOptions options = new KubeLookupOptions()
+    KubeResolverOptions options = new KubeResolverOptions()
       .setNamespace(kubernetesMocking.defaultNamespace())
       .setHost("localhost")
       .setPort(1234)
@@ -37,7 +37,7 @@ public class KubeServiceResolverMockTest extends KubeServiceResolverTestBase {
       .setWebSocketClientOptions(new WebSocketClientOptions().setSsl(true).setTrustAll(true));
 
     client = vertx.httpClientBuilder()
-      .withLookup(KubeLookup.create(options))
+      .withAddressResolver(KubeResolver.create(options))
       .build();
   }
 
