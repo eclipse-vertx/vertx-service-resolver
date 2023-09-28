@@ -10,14 +10,17 @@
  */
 package io.vertx.serviceresolver.kube;
 
-import io.vertx.core.Vertx;
-import io.vertx.core.net.AddressResolver;
+import io.vertx.serviceresolver.ServiceLookup;
+import io.vertx.serviceresolver.impl.ServiceLookupImpl;
 import io.vertx.serviceresolver.kube.impl.KubeResolverImpl;
 
-public interface KubeResolver extends AddressResolver {
+/**
+ * Kubernetes lookup.
+ */
+public interface KubeLookup {
 
-  static KubeResolver create(Vertx vertx, KubeResolverOptions options) {
-    return new KubeResolverImpl(vertx, options.getNamespace(), options.getHost(), options.getPort(), options.getBearerToken(), options.getHttpClientOptions(), options.getWebSocketClientOptions());
+  static ServiceLookup create(KubeLookupOptions options) {
+    return new ServiceLookupImpl((vertx, lookup) -> new KubeResolverImpl(vertx, options.getNamespace(), options.getHost(), options.getPort(), options.getBearerToken(), options.getHttpClientOptions(), options.getWebSocketClientOptions()));
   }
 
 }

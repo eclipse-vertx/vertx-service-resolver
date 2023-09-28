@@ -10,14 +10,17 @@
  */
 package io.vertx.serviceresolver.srv;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.impl.VertxInternal;
-import io.vertx.core.net.AddressResolver;
+import io.vertx.serviceresolver.ServiceLookup;
+import io.vertx.serviceresolver.impl.ServiceLookupImpl;
 import io.vertx.serviceresolver.srv.impl.SrvResolverImpl;
 
-public interface SrvResolver extends AddressResolver {
+/**
+ * DNS Srv lookup.
+ */
+public interface SrvLookup {
 
-  static SrvResolver create(Vertx vertx, SrvResolverOptions options) {
-    return new SrvResolverImpl((VertxInternal) vertx, options.getHost(), options.getPort());
+  static ServiceLookup create(SrvLookupOptions options) {
+    return new ServiceLookupImpl((vertx, lookup) -> new SrvResolverImpl((VertxInternal) vertx, options.getHost(), options.getPort()));
   }
 }

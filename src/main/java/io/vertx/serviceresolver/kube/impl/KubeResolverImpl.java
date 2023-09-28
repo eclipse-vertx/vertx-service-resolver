@@ -19,11 +19,11 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.impl.ResolverBase;
-import io.vertx.serviceresolver.kube.KubeResolver;
+import io.vertx.serviceresolver.kube.KubeLookup;
 
 import static io.vertx.core.http.HttpMethod.GET;
 
-public class KubeResolverImpl extends ResolverBase<KubeServiceState> implements KubeResolver {
+public class KubeResolverImpl extends ResolverBase<KubeServiceState> {
 
   final String host;
   final int port;

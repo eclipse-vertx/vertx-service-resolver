@@ -17,17 +17,17 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.spi.resolver.AddressResolver;
+import io.vertx.core.net.AddressLookup;
 import io.vertx.serviceresolver.ServiceAddress;
 
-public class ServiceResolverExamples {
+public class ServiceLookupExamples {
 
   public void httpClient(Vertx vertx) {
 
-    AddressResolver<?, ?, ?> resolver = null;
+    AddressLookup lookup = null;
 
     HttpClient client = vertx.httpClientBuilder()
-      .withAddressResolver(resolver)
+      .withLookup(lookup)
       .build();
 
     Future<HttpClientRequest> requestFuture = client.request(new RequestOptions()

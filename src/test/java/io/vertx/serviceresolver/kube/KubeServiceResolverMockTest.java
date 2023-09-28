@@ -7,7 +7,6 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.serviceresolver.HttpProxy;
 import io.vertx.serviceresolver.ServiceAddress;
-import io.vertx.serviceresolver.kube.impl.KubeResolverImpl;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -30,16 +29,15 @@ public class KubeServiceResolverMockTest extends KubeServiceResolverTestBase {
     proxy.port(1234);
     proxy.start();
 
-    KubeResolverOptions options = new KubeResolverOptions()
+    KubeLookupOptions options = new KubeLookupOptions()
       .setNamespace(kubernetesMocking.defaultNamespace())
       .setHost("localhost")
       .setPort(1234)
       .setHttpClientOptions(new HttpClientOptions().setSsl(true).setTrustAll(true))
       .setWebSocketClientOptions(new WebSocketClientOptions().setSsl(true).setTrustAll(true));
 
-    KubeResolver resolver = KubeResolver.create(vertx, options);
     client = vertx.httpClientBuilder()
-      .withAddressResolver(resolver)
+      .withLookup(KubeLookup.create(options))
       .build();
   }
 
