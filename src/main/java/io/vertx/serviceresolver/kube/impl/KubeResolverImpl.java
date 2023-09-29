@@ -17,6 +17,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.serviceresolver.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.impl.ResolverBase;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
@@ -24,7 +25,7 @@ import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
 import static io.vertx.core.http.HttpMethod.GET;
 
-public class KubeResolverImpl extends ResolverBase<KubeServiceState> {
+public class KubeResolverImpl extends ResolverBase<SocketAddress, KubeServiceState> {
 
   final String host;
   final int port;
@@ -90,7 +91,12 @@ public class KubeResolverImpl extends ResolverBase<KubeServiceState> {
   }
 
   @Override
-  public void removeAddress(KubeServiceState unused, SocketAddress socketAddress) {
+  public SocketAddress addressOf(Endpoint<SocketAddress> endpoint) {
+    return endpoint.get();
+  }
+
+  @Override
+  public void removeAddress(KubeServiceState state, Endpoint<SocketAddress> endpoint) {
 
   }
 

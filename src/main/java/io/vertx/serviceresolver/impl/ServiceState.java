@@ -12,6 +12,7 @@ package io.vertx.serviceresolver.impl;
 
 import io.vertx.core.Future;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.serviceresolver.Endpoint;
 import io.vertx.serviceresolver.loadbalancing.EndpointSelector;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
@@ -29,17 +30,17 @@ public abstract class ServiceState<E> {
     this.selector = loadBalancer.selector();
   }
 
-  Future<SocketAddress> pickAddress() {
+  Future<EndpointImpl<E>> pickAddress() {
     if (endpoints.isEmpty()) {
       return Future.failedFuture("No addresses for service " + name);
     } else {
       EndpointImpl<E> endpoint = selector.selectEndpoint(endpoints);
-      return Future.succeededFuture(toSocketAddress(endpoint.get()));
+      return Future.succeededFuture(endpoint);
     }
   }
 
   public final void add(E endpoint) {
-    endpoints.add(new EndpointImpl<>(endpoint));
+    endpoints.add(new EndpointImpl<>(this, endpoint));
   }
 
   public final void add(List<E> endpoints) {
@@ -51,9 +52,6 @@ public abstract class ServiceState<E> {
   protected boolean isValid() {
     return true;
   }
-
-  protected abstract SocketAddress toSocketAddress(E endpoint);
-
 
 
 }

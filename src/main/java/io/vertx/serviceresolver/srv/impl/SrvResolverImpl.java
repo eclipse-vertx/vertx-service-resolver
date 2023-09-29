@@ -16,6 +16,7 @@ import io.vertx.core.dns.SrvRecord;
 import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.serviceresolver.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.impl.ResolverBase;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
@@ -24,7 +25,7 @@ import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
 import java.util.List;
 
-public class SrvResolverImpl extends ResolverBase<SrvServiceState> implements SrvResolver {
+public class SrvResolverImpl extends ResolverBase<SrvRecord, SrvServiceState> implements SrvResolver {
 
   final String host;
   final int port;
@@ -53,8 +54,14 @@ public class SrvResolverImpl extends ResolverBase<SrvServiceState> implements Sr
   }
 
   @Override
-  public void removeAddress(SrvServiceState state, SocketAddress address) {
-    // TODO
+  public SocketAddress addressOf(Endpoint<SrvRecord> endpoint) {
+    SrvRecord record = endpoint.get();
+    return SocketAddress.inetSocketAddress(record.port(), record.target());
+  }
+
+  @Override
+  public void removeAddress(SrvServiceState state, Endpoint<SrvRecord> endpoint) {
+
   }
 
   @Override

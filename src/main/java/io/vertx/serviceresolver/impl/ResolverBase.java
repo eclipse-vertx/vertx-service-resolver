@@ -15,10 +15,11 @@ import io.vertx.core.Vertx;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.net.AddressResolver;
+import io.vertx.serviceresolver.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
-public abstract class ResolverBase<T extends ServiceState<?>> implements AddressResolver<T, ServiceAddress, Void> {
+public abstract class ResolverBase<E, T extends ServiceState<E>> implements AddressResolver<T, ServiceAddress, RequestMetric<E>, EndpointImpl<E>> {
 
   protected final Vertx vertx;
   protected final LoadBalancer loadBalancer;
@@ -39,12 +40,48 @@ public abstract class ResolverBase<T extends ServiceState<?>> implements Address
   }
 
   @Override
-  public Future<SocketAddress> pickAddress(T unused) {
-    return unused.pickAddress();
+  public Future<EndpointImpl<E>> pickEndpoint(T state) {
+    return state.pickAddress();
   }
 
   @Override
   public boolean isValid(T state) {
     return state.isValid();
+  }
+
+  @Override
+  public SocketAddress addressOf(EndpointImpl<E> endpoint) {
+    return addressOf((Endpoint<E>) endpoint);
+  }
+
+  @Override
+  public void removeAddress(T state, EndpointImpl<E> endpoint) {
+    removeAddress(state, (Endpoint<E>) endpoint);
+  }
+
+  public abstract SocketAddress addressOf(Endpoint<E> endpoint);
+
+  public abstract void removeAddress(T state, Endpoint<E> endpoint);
+
+  @Override
+  public RequestMetric<E> requestBegin(EndpointImpl<E> endpoint) {
+    RequestMetric<E> metric = new RequestMetric<>(endpoint);
+    metric.requestBegin = System.currentTimeMillis();
+    return metric;
+  }
+
+  @Override
+  public void requestEnd(RequestMetric<E> metric) {
+    metric.endpoint.reportRequestMetric(metric.responseBegin - System.currentTimeMillis());
+  }
+
+  @Override
+  public void responseBegin(RequestMetric<E> metric) {
+    metric.responseBegin = System.currentTimeMillis();
+  }
+
+  @Override
+  public void responseEnd(RequestMetric<E> metric) {
+    metric.endpoint.reportResponseMetric(metric.responseBegin - System.currentTimeMillis());
   }
 }

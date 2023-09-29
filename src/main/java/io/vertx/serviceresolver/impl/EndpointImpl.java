@@ -12,16 +12,27 @@ package io.vertx.serviceresolver.impl;
 
 import io.vertx.serviceresolver.Endpoint;
 
-final class EndpointImpl<V> implements Endpoint<V> {
+final class EndpointImpl<E> implements Endpoint<E> {
 
-  final V value;
+  final ServiceState<E> state;
+  final E value;
 
-  public EndpointImpl(V value) {
+  public EndpointImpl(ServiceState<E> state, E value) {
+    this.state = state;
     this.value = value;
   }
 
   @Override
-  public V get() {
+  public E get() {
     return value;
   }
+
+  void reportRequestMetric(long latency) {
+    // TODO
+  }
+
+  void reportResponseMetric(long latency) {
+    // TODO
+  }
+
 }

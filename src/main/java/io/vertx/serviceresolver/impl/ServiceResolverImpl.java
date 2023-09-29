@@ -9,15 +9,15 @@ import java.util.function.BiFunction;
 
 public class ServiceResolverImpl implements ServiceResolver {
 
-  private final BiFunction<Vertx, ServiceResolverImpl, AddressResolver<?, ?, ?>> provider;
+  private final BiFunction<Vertx, ServiceResolverImpl, AddressResolver<?, ?, ?, ?>> provider;
   public LoadBalancer loadBalancer;
 
-  public ServiceResolverImpl(BiFunction<Vertx, ServiceResolverImpl, AddressResolver<?, ?, ?>> provider) {
+  public ServiceResolverImpl(BiFunction<Vertx, ServiceResolverImpl, AddressResolver<?, ?, ?, ?>> provider) {
     this.provider = provider;
   }
 
   @Override
-  public AddressResolver<?, ?, ?> resolver(Vertx vertx) {
+  public AddressResolver<?, ?, ?, ?> resolver(Vertx vertx) {
     return provider.apply(vertx, this);
   }
 

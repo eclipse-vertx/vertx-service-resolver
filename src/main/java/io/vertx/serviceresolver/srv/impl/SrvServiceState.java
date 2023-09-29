@@ -36,9 +36,4 @@ class SrvServiceState extends ServiceState<SrvRecord> {
     }
     return true;
   }
-
-  @Override
-  protected SocketAddress toSocketAddress(SrvRecord endpoint) {
-    return SocketAddress.inetSocketAddress(endpoint.port(), endpoint.target());
-  }
 }

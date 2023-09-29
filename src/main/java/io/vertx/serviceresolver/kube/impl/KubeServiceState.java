@@ -80,11 +80,6 @@ class KubeServiceState extends ServiceState<SocketAddress> {
       });
   }
 
-  @Override
-  protected SocketAddress toSocketAddress(SocketAddress endpoint) {
-    return endpoint;
-  }
-
   void handleUpdate(JsonObject update) {
     String type = update.getString("type");
     JsonObject object = update.getJsonObject("object");
