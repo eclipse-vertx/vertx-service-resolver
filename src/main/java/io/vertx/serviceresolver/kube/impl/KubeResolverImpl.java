@@ -96,11 +96,6 @@ public class KubeResolverImpl extends ResolverBase<SocketAddress, KubeServiceSta
   }
 
   @Override
-  public void removeAddress(KubeServiceState state, Endpoint<SocketAddress> endpoint) {
-
-  }
-
-  @Override
   public void dispose(KubeServiceState unused) {
     unused.disposed = true;
     if (unused.ws != null) {

@@ -12,10 +12,13 @@ package io.vertx.serviceresolver.impl;
 
 import io.vertx.serviceresolver.Endpoint;
 
+import java.util.concurrent.atomic.LongAdder;
+
 final class EndpointImpl<E> implements Endpoint<E> {
 
   final ServiceState<E> state;
   final E value;
+  final LongAdder concurrentRequests = new LongAdder();
 
   public EndpointImpl(ServiceState<E> state, E value) {
     this.state = state;

@@ -61,12 +61,16 @@ public abstract class ResolverBase<E, T extends ServiceState<E>> implements Addr
 
   public abstract SocketAddress addressOf(Endpoint<E> endpoint);
 
-  public abstract void removeAddress(T state, Endpoint<E> endpoint);
+  public void removeAddress(T state, Endpoint<E> endpoint) {
+
+  }
 
   @Override
   public RequestMetric<E> requestBegin(EndpointImpl<E> endpoint) {
     RequestMetric<E> metric = new RequestMetric<>(endpoint);
     metric.requestBegin = System.currentTimeMillis();
+    // NEED TO INCREMENT A COUNTER OF NUMBER OF REQUESTS
+    endpoint.concurrentRequests.increment();
     return metric;
   }
 
@@ -83,5 +87,6 @@ public abstract class ResolverBase<E, T extends ServiceState<E>> implements Addr
   @Override
   public void responseEnd(RequestMetric<E> metric) {
     metric.endpoint.reportResponseMetric(metric.responseBegin - System.currentTimeMillis());
+    metric.endpoint.concurrentRequests.decrement();
   }
 }

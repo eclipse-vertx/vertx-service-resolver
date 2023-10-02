@@ -60,11 +60,6 @@ public class SrvResolverImpl extends ResolverBase<SrvRecord, SrvServiceState> im
   }
 
   @Override
-  public void removeAddress(SrvServiceState state, Endpoint<SrvRecord> endpoint) {
-
-  }
-
-  @Override
   public void dispose(SrvServiceState state) {
     // TODO
   }
