@@ -10,8 +10,6 @@
  */
 package io.vertx.serviceresolver.loadbalancing;
 
-import io.vertx.serviceresolver.Endpoint;
-
 import java.util.List;
 
 public interface EndpointSelector {

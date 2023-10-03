@@ -8,10 +8,32 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
-package io.vertx.serviceresolver;
+package io.vertx.serviceresolver.loadbalancing;
 
 public interface Endpoint<V> {
 
+  /**
+   * @return the endpoint payload
+   */
   V get();
+
+  /**
+   * @return the number of inflight requests
+   */
+  int numberOfInflightRequests();
+
+  /**
+   * @return the total number of requests
+   */
+  int numberOfRequests();
+
+  /**
+   * @return the total number of failures
+   */
+  int numberOfFailures();
+
+  int minResponseTime();
+
+  int maxResponseTime();
 
 }

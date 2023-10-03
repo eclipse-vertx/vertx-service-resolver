@@ -32,7 +32,7 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     try {
       get(ServiceAddress.create("svc"));
     } catch (Exception e) {
-      should.assertEquals("No addresses for service svc", e.getMessage());
+      should.assertEquals("No addresses available for svc", e.getMessage());
     }
   }
 

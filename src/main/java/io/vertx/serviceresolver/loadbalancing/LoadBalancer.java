@@ -10,12 +10,26 @@
  */
 package io.vertx.serviceresolver.loadbalancing;
 
-import io.vertx.serviceresolver.Endpoint;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public interface LoadBalancer {
+
+  LoadBalancer LEAST_REQUESTS = () -> new EndpointSelector() {
+    @Override
+    public <T, E extends Endpoint<T>> E selectEndpoint(List<E> endpoints) {
+      E selected = null;
+      int numberOfRequests = Integer.MAX_VALUE;
+      for (E endpoint : endpoints) {
+        int val = endpoint.numberOfInflightRequests();
+        if (val < numberOfRequests) {
+          numberOfRequests = val;
+          selected = endpoint;
+        }
+      }
+      return selected;
+    }
+  };
 
   LoadBalancer ROUND_ROBIN = () -> {
     AtomicInteger idx = new AtomicInteger();

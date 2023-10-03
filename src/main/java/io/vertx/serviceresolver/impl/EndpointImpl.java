@@ -10,15 +10,20 @@
  */
 package io.vertx.serviceresolver.impl;
 
-import io.vertx.serviceresolver.Endpoint;
+import io.vertx.serviceresolver.loadbalancing.Endpoint;
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 
 final class EndpointImpl<E> implements Endpoint<E> {
 
   final ServiceState<E> state;
   final E value;
-  final LongAdder concurrentRequests = new LongAdder();
+  final LongAdder numberOfInflightRequests = new LongAdder();
+  final LongAdder numberOfRequests = new LongAdder();
+  final LongAdder numberOfFailures = new LongAdder();
+  final AtomicLong minResponseTime = new AtomicLong(Long.MAX_VALUE);
+  final AtomicLong maxResponseTime = new AtomicLong(0);
 
   public EndpointImpl(ServiceState<E> state, E value) {
     this.state = state;
@@ -30,12 +35,46 @@ final class EndpointImpl<E> implements Endpoint<E> {
     return value;
   }
 
-  void reportRequestMetric(long latency) {
-    // TODO
+  public int numberOfInflightRequests() {
+    return numberOfInflightRequests.intValue();
   }
 
-  void reportResponseMetric(long latency) {
-    // TODO
+  public int numberOfRequests() {
+    return numberOfRequests.intValue();
   }
 
+  @Override
+  public int numberOfFailures() {
+    return numberOfFailures.intValue();
+  }
+
+  @Override
+  public int minResponseTime() {
+    return minResponseTime.intValue();
+  }
+
+  @Override
+  public int maxResponseTime() {
+    return maxResponseTime.intValue();
+  }
+
+  void reportRequestMetric(RequestMetric<?> metric) {
+    long responseTime = metric.responseEnd - metric.requestBegin;
+    while (true) {
+      long val = minResponseTime.get();
+      if (responseTime >= val || minResponseTime.compareAndSet(val, responseTime)) {
+        break;
+      }
+    }
+    while (true) {
+      long val = maxResponseTime.get();
+      if (responseTime <= val || maxResponseTime.compareAndSet(val, responseTime)) {
+        break;
+      }
+    }
+  }
+
+  void reportRequestFailure(Throwable failure) {
+    numberOfFailures.increment();
+  }
 }

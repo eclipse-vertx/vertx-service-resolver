@@ -8,7 +8,7 @@ import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 public class MockServiceState extends ServiceState<SocketAddress> {
 
   boolean disposed;
-  EndpointSelector selector;
+  volatile EndpointSelector selector;
 
   public MockServiceState(String name, LoadBalancer loadBalancer) {
     super(name, loadBalancer);

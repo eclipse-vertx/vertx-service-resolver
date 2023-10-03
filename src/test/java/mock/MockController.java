@@ -1,19 +1,29 @@
 package mock;
 
 import io.vertx.core.net.SocketAddress;
-import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public class MockController {
 
-  final ConcurrentMap<String, MockServiceState> entries = new ConcurrentHashMap<>();
+  static class Registration {
+    final String name;
+    final List<SocketAddress> endpoints;
+    Registration(String name, List<SocketAddress> endpoints) {
+      this.name = name;
+      this.endpoints = endpoints;
+    }
+  }
+
+  MockResolver resolver;
+  List<Registration> deferred = new ArrayList<>();
 
   public void register(String name, List<SocketAddress> endpoints) {
-    MockServiceState state = new MockServiceState(name, LoadBalancer.ROUND_ROBIN);
-    endpoints.forEach(state::add);
-    entries.put(name, state);
+    if (resolver != null) {
+      resolver.register(name, endpoints);
+    } else {
+      deferred.add(new Registration(name, endpoints));
+    }
   }
 }

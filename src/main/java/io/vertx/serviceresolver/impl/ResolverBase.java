@@ -10,12 +10,11 @@
  */
 package io.vertx.serviceresolver.impl;
 
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.net.AddressResolver;
-import io.vertx.serviceresolver.Endpoint;
+import io.vertx.serviceresolver.loadbalancing.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
@@ -40,8 +39,8 @@ public abstract class ResolverBase<E, T extends ServiceState<E>> implements Addr
   }
 
   @Override
-  public Future<EndpointImpl<E>> pickEndpoint(T state) {
-    return state.pickAddress();
+  public EndpointImpl<E> pickEndpoint(T state) {
+    return (EndpointImpl<E>) state.pickAddress();
   }
 
   @Override
@@ -66,17 +65,21 @@ public abstract class ResolverBase<E, T extends ServiceState<E>> implements Addr
   }
 
   @Override
-  public RequestMetric<E> requestBegin(EndpointImpl<E> endpoint) {
+  public RequestMetric<E> initiateRequest(EndpointImpl<E> endpoint) {
     RequestMetric<E> metric = new RequestMetric<>(endpoint);
-    metric.requestBegin = System.currentTimeMillis();
-    // NEED TO INCREMENT A COUNTER OF NUMBER OF REQUESTS
-    endpoint.concurrentRequests.increment();
+    endpoint.numberOfRequests.increment();
+    endpoint.numberOfInflightRequests.increment();
     return metric;
   }
 
   @Override
+  public void requestBegin(RequestMetric<E> metric) {
+    metric.requestBegin = System.currentTimeMillis();
+  }
+
+  @Override
   public void requestEnd(RequestMetric<E> metric) {
-    metric.endpoint.reportRequestMetric(metric.responseBegin - System.currentTimeMillis());
+    metric.requestEnd = System.currentTimeMillis();
   }
 
   @Override
@@ -86,7 +89,19 @@ public abstract class ResolverBase<E, T extends ServiceState<E>> implements Addr
 
   @Override
   public void responseEnd(RequestMetric<E> metric) {
-    metric.endpoint.reportResponseMetric(metric.responseBegin - System.currentTimeMillis());
-    metric.endpoint.concurrentRequests.decrement();
+    metric.responseEnd = System.currentTimeMillis();
+    if (metric.failure == null) {
+      metric.endpoint.reportRequestMetric(metric);
+      metric.endpoint.numberOfInflightRequests.decrement();
+    }
+  }
+
+  @Override
+  public void requestFailed(RequestMetric<E> metric, Throwable failure) {
+    if (metric.failure == null) {
+      metric.failure = failure;
+      metric.endpoint.numberOfInflightRequests.decrement();
+      metric.endpoint.reportRequestFailure(failure);
+    }
   }
 }

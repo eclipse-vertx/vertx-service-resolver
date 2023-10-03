@@ -94,7 +94,7 @@ class KubeServiceState extends ServiceState<SocketAddress> {
     JsonObject metadata = item.getJsonObject("metadata");
     String name = metadata.getString("name");
     if (this.name.equals(name)) {
-      endpoints.clear();
+      clearEndpoints();
       JsonArray subsets = item.getJsonArray("subsets");
       if (subsets != null) {
         for (int j = 0;j < subsets.size();j++) {

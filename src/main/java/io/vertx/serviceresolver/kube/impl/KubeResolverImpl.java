@@ -17,7 +17,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.serviceresolver.Endpoint;
+import io.vertx.serviceresolver.loadbalancing.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.impl.ResolverBase;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;

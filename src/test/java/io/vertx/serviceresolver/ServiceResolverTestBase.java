@@ -94,9 +94,7 @@ public abstract class ServiceResolverTestBase {
 
     Future<Buffer> fut = client
       .request(new RequestOptions()
-        .setServer(addr)
-        .setHost("localhost")
-        .setPort(80))
+        .setServer(addr))
       .compose(req -> req.send()
         .compose(HttpClientResponse::body));
     try {
