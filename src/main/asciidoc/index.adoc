@@ -1,2 +1,49 @@
 = Vert.x Service Resolver
 
+The Service Resolver library is a plugin that lets Vert.x clients call services using logical service names instead of network addresses. The service resolver is also able to perform client side load balancing with the usual strategies.
+
+== Getting started with Vert.x HTTP client
+
+Given a resolver, you can configure a Vert.x HTTP client to use it thansk to an HTTP client builder
+
+[source,java]
+----
+{@link examples.ServiceResolverExamples#configuringHttpClient}
+----
+
+A service is addressed with a `{@link io.vertx.serviceresolver.ServiceAddress}` instead of a `{@link io.vertx.core.net.SocketAddress}`
+
+[source,java]
+----
+{@link examples.ServiceResolverExamples#usingHttpClient}
+----
+
+== Kubernetes resolver
+
+The Kubernetes resolver locates services within a Kubernetes cluster.
+
+[source,java]
+----
+{@link examples.ServiceResolverExamples#usingKubernetesResolver}
+----
+
+The default resolver options values are loaded from the pod environment
+- `KUBERNETES_SERVICE_HOST`
+- `KUBERNETES_SERVICE_PORT`
+- `/var/run/secrets/kubernetes.io/serviceaccount/token`
+- `/var/run/secrets/kubernetes.io/serviceaccount/ca.crt`
+- `/var/run/secrets/kubernetes.io/serviceaccount/namespace`
+
+You can override these settings
+
+[source,java]
+----
+{@link examples.ServiceResolverExamples#configuringKubernetesResolver}
+----
+
+== SRV resolver
+
+== Client side load balancing
+
+todo
+

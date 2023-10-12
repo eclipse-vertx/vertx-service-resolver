@@ -15,9 +15,24 @@ import io.vertx.serviceresolver.impl.ServiceResolverImpl;
 import io.vertx.serviceresolver.kube.impl.KubeResolverImpl;
 
 /**
- * Kubernetes lookup.
+ * A resolver for services within a Kubernetes cluster.
  */
 public interface KubeResolver {
+
+  /**
+   * Create a Kubernetes resolver with the default options.
+   *
+   * @return the resolver
+   */
+  static ServiceResolver create() {
+    return create(new KubeResolverOptions());
+  }
+
+  /**
+   * Create a Kubernetes resolver with the given {@code options}.
+   *
+   * @return the resolver
+   */
   static ServiceResolver create(KubeResolverOptions options) {
     return new ServiceResolverImpl((vertx, lookup) -> new KubeResolverImpl(vertx, lookup.loadBalancer, options));
   }

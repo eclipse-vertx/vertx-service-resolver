@@ -21,6 +21,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+/**
+ *
+ */
 @DataObject(generateConverter = true, publicConverter = false)
 public class KubeResolverOptions {
 
