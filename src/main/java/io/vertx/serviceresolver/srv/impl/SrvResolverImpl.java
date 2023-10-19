@@ -16,6 +16,7 @@ import io.vertx.core.dns.SrvRecord;
 import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.serviceresolver.impl.EndpointImpl;
 import io.vertx.serviceresolver.loadbalancing.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.impl.ResolverBase;
@@ -54,8 +55,7 @@ public class SrvResolverImpl extends ResolverBase<SrvRecord, SrvServiceState> im
   }
 
   @Override
-  public SocketAddress addressOf(Endpoint<SrvRecord> endpoint) {
-    SrvRecord record = endpoint.get();
+  public SocketAddress addressOfEndpoint(SrvRecord record) {
     return SocketAddress.inetSocketAddress(record.port(), record.target());
   }
 

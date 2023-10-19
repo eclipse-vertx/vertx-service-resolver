@@ -17,6 +17,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.serviceresolver.impl.EndpointImpl;
 import io.vertx.serviceresolver.loadbalancing.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.impl.ResolverBase;
@@ -91,8 +92,8 @@ public class KubeResolverImpl extends ResolverBase<SocketAddress, KubeServiceSta
   }
 
   @Override
-  public SocketAddress addressOf(Endpoint<SocketAddress> endpoint) {
-    return endpoint.get();
+  public SocketAddress addressOfEndpoint(SocketAddress endpoint) {
+    return endpoint;
   }
 
   @Override

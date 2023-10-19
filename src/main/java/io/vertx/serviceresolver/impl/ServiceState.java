@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public abstract class ServiceState<E> {
 
   public final String name;
-  private final AtomicReference<List<Endpoint<E>>> endpoints = new AtomicReference<>(Collections.emptyList());
+  private final AtomicReference<List<EndpointImpl<E>>> endpoints = new AtomicReference<>(Collections.emptyList());
   private final EndpointSelector selector;
 
   public ServiceState(String name, LoadBalancer loadBalancer) {
@@ -30,8 +30,8 @@ public abstract class ServiceState<E> {
     this.selector = loadBalancer.selector();
   }
 
-  Endpoint<E> pickAddress() {
-    List<Endpoint<E>> list = endpoints.get();
+  Endpoint pickAddress() {
+    List<EndpointImpl<E>> list = endpoints.get();
     if (list == null || list.isEmpty()) {
       return null;
     } else {
@@ -41,9 +41,9 @@ public abstract class ServiceState<E> {
 
   public final void add(E endpoint) {
     while (true) {
-      List<Endpoint<E>> list = endpoints.get();
-      Endpoint<E> e = new EndpointImpl<>(this, endpoint);
-      List<Endpoint<E>> copy;
+      List<EndpointImpl<E>> list = endpoints.get();
+      EndpointImpl<E> e = new EndpointImpl<>(this, endpoint);
+      List<EndpointImpl<E>> copy;
       if (list.isEmpty()) {
         copy = Collections.singletonList(e);
       } else {
@@ -60,7 +60,7 @@ public abstract class ServiceState<E> {
     endpoints.set(Collections.emptyList());
   }
 
-  public List<Endpoint<E>> endpoints() {
+  public List<EndpointImpl<E>> endpoints() {
     return endpoints.get();
   }
 

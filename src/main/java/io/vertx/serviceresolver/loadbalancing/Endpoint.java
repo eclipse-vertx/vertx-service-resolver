@@ -10,12 +10,7 @@
  */
 package io.vertx.serviceresolver.loadbalancing;
 
-public interface Endpoint<V> {
-
-  /**
-   * @return the endpoint payload
-   */
-  V get();
+public interface Endpoint {
 
   /**
    * @return the number of inflight requests

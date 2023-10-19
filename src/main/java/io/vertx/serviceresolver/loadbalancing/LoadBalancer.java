@@ -17,7 +17,7 @@ public interface LoadBalancer {
 
   LoadBalancer LEAST_REQUESTS = () -> new EndpointSelector() {
     @Override
-    public <T, E extends Endpoint<T>> E selectEndpoint(List<E> endpoints) {
+    public <E extends Endpoint> E selectEndpoint(List<E> endpoints) {
       E selected = null;
       int numberOfRequests = Integer.MAX_VALUE;
       for (E endpoint : endpoints) {
@@ -35,7 +35,7 @@ public interface LoadBalancer {
     AtomicInteger idx = new AtomicInteger();
     return new EndpointSelector() {
       @Override
-      public <T, E extends Endpoint<T>> E selectEndpoint(List<E> endpoints) {
+      public <E extends Endpoint> E selectEndpoint(List<E> endpoints) {
         int next = idx.getAndIncrement();
         return endpoints.get(next % endpoints.size());
       }

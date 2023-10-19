@@ -49,18 +49,18 @@ public abstract class ResolverBase<E, T extends ServiceState<E>> implements Addr
   }
 
   @Override
-  public SocketAddress addressOf(EndpointImpl<E> endpoint) {
-    return addressOf((Endpoint<E>) endpoint);
+  public final SocketAddress addressOf(EndpointImpl<E> endpoint) {
+    return addressOfEndpoint(endpoint.get());
   }
+
+  public abstract SocketAddress addressOfEndpoint(E endpoint);
 
   @Override
   public void removeAddress(T state, EndpointImpl<E> endpoint) {
-    removeAddress(state, (Endpoint<E>) endpoint);
+    removeAddress(state, (Endpoint) endpoint);
   }
 
-  public abstract SocketAddress addressOf(Endpoint<E> endpoint);
-
-  public void removeAddress(T state, Endpoint<E> endpoint) {
+  public void removeAddress(T state, Endpoint endpoint) {
 
   }
 

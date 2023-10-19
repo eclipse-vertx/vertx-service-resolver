@@ -3,6 +3,7 @@ package mock;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.serviceresolver.impl.EndpointImpl;
 import io.vertx.serviceresolver.loadbalancing.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolver;
@@ -39,8 +40,8 @@ public class MockResolver extends ResolverBase<SocketAddress, MockServiceState> 
   }
 
   @Override
-  public SocketAddress addressOf(Endpoint<SocketAddress> endpoint) {
-    return endpoint.get();
+  public SocketAddress addressOfEndpoint(SocketAddress endpoint) {
+    return endpoint;
   }
 
   @Override
