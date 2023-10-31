@@ -18,7 +18,7 @@ import io.vertx.serviceresolver.loadbalancing.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
-public abstract class ResolverBase<E, T extends ServiceState<E>> implements AddressResolver<T, ServiceAddress, RequestMetric<E>, EndpointImpl<E>> {
+public abstract class ResolverBase<A extends Address, E, T extends ServiceState<E>> implements AddressResolver<T, A, RequestMetric<E>, EndpointImpl<E>> {
 
   protected final Vertx vertx;
   protected final LoadBalancer loadBalancer;
@@ -31,11 +31,6 @@ public abstract class ResolverBase<E, T extends ServiceState<E>> implements Addr
 
     this.vertx = vertx;
     this.loadBalancer = loadBalancer;
-  }
-
-  @Override
-  public ServiceAddress tryCast(Address address) {
-    return address instanceof ServiceAddress ? (ServiceAddress) address : null;
   }
 
   @Override

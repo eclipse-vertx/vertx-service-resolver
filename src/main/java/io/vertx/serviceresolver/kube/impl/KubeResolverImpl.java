@@ -16,9 +16,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.serviceresolver.impl.EndpointImpl;
-import io.vertx.serviceresolver.loadbalancing.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.impl.ResolverBase;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
@@ -26,7 +25,7 @@ import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
 import static io.vertx.core.http.HttpMethod.GET;
 
-public class KubeResolverImpl extends ResolverBase<SocketAddress, KubeServiceState> {
+public class KubeResolverImpl extends ResolverBase<ServiceAddress, SocketAddress, KubeServiceState> {
 
   final String host;
   final int port;
@@ -49,6 +48,11 @@ public class KubeResolverImpl extends ResolverBase<SocketAddress, KubeServiceSta
     this.bearerToken = options.getBearerToken();
     this.wsClient = vertx.createWebSocketClient(wsClientOptions == null ? new WebSocketClientOptions() : wsClientOptions);
     this.httpClient = vertx.createHttpClient(httpClientOptions == null ? new HttpClientOptions() : httpClientOptions);
+  }
+
+  @Override
+  public ServiceAddress tryCast(Address address) {
+    return address instanceof ServiceAddress ? (ServiceAddress) address : null;
   }
 
   @Override

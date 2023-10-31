@@ -2,6 +2,7 @@ package mock;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.impl.EndpointImpl;
 import io.vertx.serviceresolver.loadbalancing.Endpoint;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class MockResolver extends ResolverBase<SocketAddress, MockServiceState> {
+public class MockResolver extends ResolverBase<ServiceAddress, SocketAddress, MockServiceState> {
 
   public static ServiceResolver create(MockController controller) {
     return new ServiceResolverImpl((vertx, lookup) -> {
@@ -37,6 +38,11 @@ public class MockResolver extends ResolverBase<SocketAddress, MockServiceState> 
     MockServiceState state = new MockServiceState(name, loadBalancer);
     endpoints.forEach(state::add);
     entries.put(name, state);
+  }
+
+  @Override
+  public ServiceAddress tryCast(Address address) {
+    return address instanceof ServiceAddress ? (ServiceAddress) address : null;
   }
 
   @Override
