@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.LongAdder;
 
 public final class EndpointImpl<E> implements Endpoint {
 
-  final ServiceState<E> state;
   final E value;
   final LongAdder numberOfInflightRequests = new LongAdder();
   final LongAdder numberOfRequests = new LongAdder();
@@ -25,8 +24,7 @@ public final class EndpointImpl<E> implements Endpoint {
   final AtomicLong minResponseTime = new AtomicLong(Long.MAX_VALUE);
   final AtomicLong maxResponseTime = new AtomicLong(0);
 
-  EndpointImpl(ServiceState<E> state, E value) {
-    this.state = state;
+  EndpointImpl(E value) {
     this.value = value;
   }
 

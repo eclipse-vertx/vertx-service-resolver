@@ -8,19 +8,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
-package io.vertx.serviceresolver.srv;
+package io.vertx.serviceresolver.dns;
 
 import io.vertx.serviceresolver.ServiceResolver;
+import io.vertx.serviceresolver.dns.impl.DnsResolverImpl;
 import io.vertx.serviceresolver.impl.ResolverImpl;
 import io.vertx.serviceresolver.impl.ServiceResolverImpl;
-import io.vertx.serviceresolver.srv.impl.SrvResolverImpl;
 
-/**
- * DNS Srv lookup.
- */
-public interface SrvResolver {
+public interface DnsResolver {
 
-  static ServiceResolver create(SrvResolverOptions options) {
-    return new ServiceResolverImpl((vertx, lookup) -> new ResolverImpl<>(vertx, lookup.loadBalancer, new SrvResolverImpl(options)));
+  static ServiceResolver create(DnsResolverOptions options) {
+    return new ServiceResolverImpl((vertx, lookup) -> new ResolverImpl<>(vertx, lookup.loadBalancer, new DnsResolverImpl(options)));
   }
 }
