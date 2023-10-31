@@ -10,20 +10,21 @@
  */
 package io.vertx.serviceresolver.impl;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.net.AddressResolver;
 import io.vertx.serviceresolver.loadbalancing.Endpoint;
-import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
-public abstract class ResolverBase<A extends Address, E, T extends ServiceState<E>> implements AddressResolver<T, A, RequestMetric<E>, EndpointImpl<E>> {
+public final class ResolverImpl<A extends Address, E, S extends ResolverState<E>> implements AddressResolver<S, A, RequestMetric<E>, EndpointImpl<E>> {
 
-  protected final Vertx vertx;
-  protected final LoadBalancer loadBalancer;
+  private final Vertx vertx;
+  private final LoadBalancer loadBalancer;
+  private final ResolverPlugin<A, E, S> plugin;
 
-  public ResolverBase(Vertx vertx, LoadBalancer loadBalancer) {
+  public ResolverImpl(Vertx vertx, LoadBalancer loadBalancer, ResolverPlugin<A, E, S> plugin) {
 
     if (loadBalancer == null) {
       loadBalancer = LoadBalancer.ROUND_ROBIN;
@@ -31,31 +32,47 @@ public abstract class ResolverBase<A extends Address, E, T extends ServiceState<
 
     this.vertx = vertx;
     this.loadBalancer = loadBalancer;
+    this.plugin = plugin;
+
+    plugin.init(vertx);
   }
 
   @Override
-  public EndpointImpl<E> pickEndpoint(T state) {
+  public A tryCast(Address address) {
+    return plugin.tryCast(address);
+  }
+
+  @Override
+  public Future<S> resolve(A address) {
+    return plugin.resolve(loadBalancer, address);
+  }
+
+  @Override
+  public void dispose(S state) {
+    plugin.dispose(state);
+  }
+
+  @Override
+  public EndpointImpl<E> pickEndpoint(S state) {
     return (EndpointImpl<E>) state.pickAddress();
   }
 
   @Override
-  public boolean isValid(T state) {
+  public boolean isValid(S state) {
     return state.isValid();
   }
 
   @Override
-  public final SocketAddress addressOf(EndpointImpl<E> endpoint) {
-    return addressOfEndpoint(endpoint.get());
+  public SocketAddress addressOf(EndpointImpl<E> endpoint) {
+    return plugin.addressOfEndpoint(endpoint.get());
   }
 
-  public abstract SocketAddress addressOfEndpoint(E endpoint);
-
   @Override
-  public void removeAddress(T state, EndpointImpl<E> endpoint) {
+  public void removeAddress(S state, EndpointImpl<E> endpoint) {
     removeAddress(state, (Endpoint) endpoint);
   }
 
-  public void removeAddress(T state, Endpoint endpoint) {
+  public void removeAddress(S state, Endpoint endpoint) {
 
   }
 

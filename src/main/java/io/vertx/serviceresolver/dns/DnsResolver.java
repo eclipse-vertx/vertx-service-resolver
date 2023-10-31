@@ -12,11 +12,12 @@ package io.vertx.serviceresolver.dns;
 
 import io.vertx.serviceresolver.ServiceResolver;
 import io.vertx.serviceresolver.dns.impl.DnsResolverImpl;
+import io.vertx.serviceresolver.impl.ResolverImpl;
 import io.vertx.serviceresolver.impl.ServiceResolverImpl;
 
 public interface DnsResolver {
 
   static ServiceResolver create(DnsResolverOptions options) {
-    return new ServiceResolverImpl((vertx, lookup) -> new DnsResolverImpl(vertx, options, lookup.loadBalancer));
+    return new ServiceResolverImpl((vertx, lookup) -> new ResolverImpl<>(vertx, lookup.loadBalancer, new DnsResolverImpl(options)));
   }
 }

@@ -11,6 +11,7 @@
 package io.vertx.serviceresolver.kube;
 
 import io.vertx.serviceresolver.ServiceResolver;
+import io.vertx.serviceresolver.impl.ResolverImpl;
 import io.vertx.serviceresolver.impl.ServiceResolverImpl;
 import io.vertx.serviceresolver.kube.impl.KubeResolverImpl;
 
@@ -34,6 +35,6 @@ public interface KubeResolver {
    * @return the resolver
    */
   static ServiceResolver create(KubeResolverOptions options) {
-    return new ServiceResolverImpl((vertx, lookup) -> new KubeResolverImpl(vertx, lookup.loadBalancer, options));
+    return new ServiceResolverImpl((vertx, lookup) -> new ResolverImpl<>(vertx, lookup.loadBalancer, new KubeResolverImpl(options)));
   }
 }

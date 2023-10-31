@@ -12,7 +12,6 @@ package io.vertx.serviceresolver.dns;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-import io.vertx.serviceresolver.srv.SrvResolverOptionsConverter;
 
 @DataObject(generateConverter = true, publicConverter = false)
 public class DnsResolverOptions {

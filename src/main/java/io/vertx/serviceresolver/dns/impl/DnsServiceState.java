@@ -11,23 +11,27 @@
 package io.vertx.serviceresolver.dns.impl;
 
 import io.vertx.core.net.SocketAddress;
-import io.vertx.serviceresolver.impl.ServiceState;
+import io.vertx.serviceresolver.impl.ResolverState;
+import io.vertx.serviceresolver.loadbalancing.EndpointSelector;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 
-class DnsServiceState extends ServiceState<SocketAddress> {
+class DnsServiceState extends ResolverState<SocketAddress> {
 
   final long timestamp;
 
 
-  DnsServiceState(SocketAddress address, long timestamp, List<InetSocketAddress> addresses, LoadBalancer loadBalancer) {
-    super(address.hostName(), loadBalancer);
+  DnsServiceState(SocketAddress address, long timestamp, List<InetSocketAddress> addresses, EndpointSelector endpointSelector) {
+    super(endpointSelector);
 
+    List<SocketAddress> endpoints = new ArrayList<>();
     for (InetSocketAddress addr : addresses) {
-      add(SocketAddress.inetSocketAddress(address.port(), addr.getAddress().getHostAddress()));
+      endpoints.add(SocketAddress.inetSocketAddress(address.port(), addr.getAddress().getHostAddress()));
     }
+    set(endpoints);
 
     this.timestamp = timestamp;
   }

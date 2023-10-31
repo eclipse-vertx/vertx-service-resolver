@@ -10,8 +10,8 @@
  */
 package io.vertx.serviceresolver.srv;
 
-import io.vertx.core.impl.VertxInternal;
 import io.vertx.serviceresolver.ServiceResolver;
+import io.vertx.serviceresolver.impl.ResolverImpl;
 import io.vertx.serviceresolver.impl.ServiceResolverImpl;
 import io.vertx.serviceresolver.srv.impl.SrvResolverImpl;
 
@@ -21,6 +21,6 @@ import io.vertx.serviceresolver.srv.impl.SrvResolverImpl;
 public interface SrvResolver {
 
   static ServiceResolver create(SrvResolverOptions options) {
-    return new ServiceResolverImpl((vertx, lookup) -> new SrvResolverImpl((VertxInternal) vertx, lookup.loadBalancer, options));
+    return new ServiceResolverImpl((vertx, lookup) -> new ResolverImpl<>(vertx, lookup.loadBalancer, new SrvResolverImpl(options)));
   }
 }

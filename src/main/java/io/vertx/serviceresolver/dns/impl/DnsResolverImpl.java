@@ -15,24 +15,26 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.core.impl.AddressResolver;
-import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.dns.DnsResolverOptions;
-import io.vertx.serviceresolver.impl.ResolverBase;
+import io.vertx.serviceresolver.impl.ResolverPlugin;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
-import io.vertx.serviceresolver.srv.SrvResolver;
 
 import java.util.Collections;
 
-public class DnsResolverImpl extends ResolverBase<SocketAddress, SocketAddress, DnsServiceState> implements SrvResolver {
+public class DnsResolverImpl implements ResolverPlugin<SocketAddress, SocketAddress, DnsServiceState> {
 
+  private final DnsResolverOptions options;
   private AddressResolver dnsResolver;
 
-  public DnsResolverImpl(Vertx vertx, DnsResolverOptions options, LoadBalancer loadBalancer) {
-    super(vertx, loadBalancer);
+  public DnsResolverImpl(DnsResolverOptions options) {
+    this.options = options;
+  }
 
+  @Override
+  public void init(Vertx vertx) {
     AddressResolverOptions o = new AddressResolverOptions();
     o.setServers(Collections.singletonList(options.getHost() + ":" + options.getPort()));
     dnsResolver = new AddressResolver(vertx, o);
@@ -49,11 +51,11 @@ public class DnsResolverImpl extends ResolverBase<SocketAddress, SocketAddress, 
   }
 
   @Override
-  public Future<DnsServiceState> resolve(SocketAddress address) {
+  public Future<DnsServiceState> resolve(LoadBalancer loadBalancer, SocketAddress address) {
     Promise<DnsServiceState> promise = Promise.promise();
     dnsResolver.resolveHostnameAll(address.host(), ar -> {
       if (ar.succeeded()) {
-        promise.complete(new DnsServiceState(address, 100, ar.result(), loadBalancer));
+        promise.complete(new DnsServiceState(address, 100, ar.result(), loadBalancer.selector()));
       } else {
         promise.fail(ar.cause());
       }

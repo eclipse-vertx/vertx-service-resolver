@@ -19,33 +19,36 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.ServiceAddress;
-import io.vertx.serviceresolver.impl.ResolverBase;
+import io.vertx.serviceresolver.impl.ResolverPlugin;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
 import static io.vertx.core.http.HttpMethod.GET;
 
-public class KubeResolverImpl extends ResolverBase<ServiceAddress, SocketAddress, KubeServiceState> {
+public class KubeResolverImpl implements ResolverPlugin<ServiceAddress, SocketAddress, KubeServiceState> {
 
+  final KubeResolverOptions options;
   final String host;
   final int port;
-  final WebSocketClient wsClient;
-  final HttpClient httpClient;
+  Vertx vertx;
+  WebSocketClient wsClient;
+  HttpClient httpClient;
   final String namespace;
   final String bearerToken;
 
-  public KubeResolverImpl(Vertx vertx,
-                          LoadBalancer loadBalancer,
-                          KubeResolverOptions options) {
-    super(vertx, loadBalancer);
-
-    HttpClientOptions httpClientOptions = options.getHttpClientOptions();
-    WebSocketClientOptions wsClientOptions = options.getWebSocketClientOptions();
-
+  public KubeResolverImpl(KubeResolverOptions options) {
+    this.options = options;
     this.namespace = options.getNamespace();
     this.host = options.getHost();
     this.port = options.getPort();
     this.bearerToken = options.getBearerToken();
+  }
+
+  @Override
+  public void init(Vertx vertx) {
+    HttpClientOptions httpClientOptions = options.getHttpClientOptions();
+    WebSocketClientOptions wsClientOptions = options.getWebSocketClientOptions();
+    this.vertx = vertx;
     this.wsClient = vertx.createWebSocketClient(wsClientOptions == null ? new WebSocketClientOptions() : wsClientOptions);
     this.httpClient = vertx.createHttpClient(httpClientOptions == null ? new HttpClientOptions() : httpClientOptions);
   }
@@ -56,7 +59,7 @@ public class KubeResolverImpl extends ResolverBase<ServiceAddress, SocketAddress
   }
 
   @Override
-  public Future<KubeServiceState> resolve(ServiceAddress serviceName) {
+  public Future<KubeServiceState> resolve(LoadBalancer loadBalancer, ServiceAddress serviceName) {
     return httpClient
       .request(GET, port, host, "/api/v1/namespaces/" + namespace + "/endpoints")
       .compose(req -> {
@@ -80,7 +83,7 @@ public class KubeResolverImpl extends ResolverBase<ServiceAddress, SocketAddress
         });
       }).map(response -> {
         String resourceVersion = response.getJsonObject("metadata").getString("resourceVersion");
-        KubeServiceState state = new KubeServiceState(this, vertx, resourceVersion, serviceName.name(), loadBalancer);
+        KubeServiceState state = new KubeServiceState(this, vertx, resourceVersion, serviceName.name(), loadBalancer.selector());
         JsonArray items = response.getJsonArray("items");
         for (int i = 0;i < items.size();i++) {
           JsonObject item = items.getJsonObject(i);

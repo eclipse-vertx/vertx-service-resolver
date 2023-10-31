@@ -4,9 +4,9 @@ import io.vertx.core.Future;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.net.AddressResolver;
 import io.vertx.ext.unit.TestContext;
-import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolverTestBase;
 import io.vertx.serviceresolver.dns.impl.DnsResolverImpl;
+import io.vertx.serviceresolver.impl.ResolverImpl;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 import io.vertx.test.fakedns.FakeDNSServer;
 import org.apache.directory.server.dns.messages.*;
@@ -65,7 +65,7 @@ public class DnsServiceResolverTest extends ServiceResolverTestBase {
       .setHost(FakeDNSServer.IP_ADDRESS)
       .setPort(FakeDNSServer.PORT);
 
-    resolver = new DnsResolverImpl(vertx, options, LoadBalancer.ROUND_ROBIN);
+    resolver = new ResolverImpl<>(vertx, LoadBalancer.ROUND_ROBIN, new DnsResolverImpl(options));
   }
 
   public void tearDown() throws Exception {

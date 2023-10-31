@@ -12,22 +12,20 @@ package io.vertx.serviceresolver.impl;
 
 import io.vertx.serviceresolver.loadbalancing.Endpoint;
 import io.vertx.serviceresolver.loadbalancing.EndpointSelector;
-import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public abstract class ServiceState<E> {
+public abstract class ResolverState<E> {
 
-  public final String name;
   private final AtomicReference<List<EndpointImpl<E>>> endpoints = new AtomicReference<>(Collections.emptyList());
   private final EndpointSelector selector;
 
-  public ServiceState(String name, LoadBalancer loadBalancer) {
-    this.name = name;
-    this.selector = loadBalancer.selector();
+  public ResolverState(EndpointSelector selector) {
+    this.selector = selector;
   }
 
   Endpoint pickAddress() {
@@ -39,10 +37,14 @@ public abstract class ServiceState<E> {
     }
   }
 
+  protected boolean isValid() {
+    return true;
+  }
+
   public final void add(E endpoint) {
     while (true) {
       List<EndpointImpl<E>> list = endpoints.get();
-      EndpointImpl<E> e = new EndpointImpl<>(this, endpoint);
+      EndpointImpl<E> e = new EndpointImpl<>(endpoint);
       List<EndpointImpl<E>> copy;
       if (list.isEmpty()) {
         copy = Collections.singletonList(e);
@@ -56,23 +58,26 @@ public abstract class ServiceState<E> {
     }
   }
 
-  public void clearEndpoints() {
-    endpoints.set(Collections.emptyList());
+  public final List<E> endpoints() {
+    List<EndpointImpl<E>> list = endpoints.get();
+    return new AbstractList<E>() {
+      @Override
+      public E get(int index) {
+        EndpointImpl<E> e = list.get(index);
+        return e != null ? e.get() : null;
+      }
+      @Override
+      public int size() {
+        return list.size();
+      }
+    };
   }
 
-  public List<EndpointImpl<E>> endpoints() {
-    return endpoints.get();
-  }
-
-  public final void add(List<E> endpoints) {
-    for (E endpoint : endpoints) {
-      add(endpoint);
+  public final void set(List<E> endpoints) {
+    List<EndpointImpl<E>> list = new ArrayList<>();
+    for (E e : endpoints) {
+      list.add(new EndpointImpl<>(e));
     }
+    this.endpoints.set(list);
   }
-
-  protected boolean isValid() {
-    return true;
-  }
-
-
 }

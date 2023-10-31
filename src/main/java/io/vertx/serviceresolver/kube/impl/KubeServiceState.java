@@ -17,22 +17,25 @@ import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.serviceresolver.impl.ServiceState;
+import io.vertx.serviceresolver.impl.ResolverState;
+import io.vertx.serviceresolver.loadbalancing.EndpointSelector;
 import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class KubeServiceState extends ServiceState<SocketAddress> {
+class KubeServiceState extends ResolverState<SocketAddress> {
 
-  String lastResourceVersion;
+  final String name;
   final Vertx vertx;
   final KubeResolverImpl resolver;
+  String lastResourceVersion;
   boolean disposed;
   WebSocket ws;
 
-  KubeServiceState(KubeResolverImpl resolver, Vertx vertx, String lastResourceVersion, String name, LoadBalancer loadBalancer) {
-    super(name, loadBalancer);
+  KubeServiceState(KubeResolverImpl resolver, Vertx vertx, String lastResourceVersion, String name, EndpointSelector endpointSelector) {
+    super(endpointSelector);
+    this.name = name;
     this.resolver = resolver;
     this.vertx = vertx;
     this.lastResourceVersion = lastResourceVersion;
@@ -94,9 +97,9 @@ class KubeServiceState extends ServiceState<SocketAddress> {
     JsonObject metadata = item.getJsonObject("metadata");
     String name = metadata.getString("name");
     if (this.name.equals(name)) {
-      clearEndpoints();
       JsonArray subsets = item.getJsonArray("subsets");
       if (subsets != null) {
+        List<SocketAddress> endpoints = new ArrayList<>();
         for (int j = 0;j < subsets.size();j++) {
           List<String> podIps = new ArrayList<>();
           JsonObject subset = subsets.getJsonObject(j);
@@ -112,10 +115,11 @@ class KubeServiceState extends ServiceState<SocketAddress> {
             int podPort = port.getInteger("port");
             for (String podIp : podIps) {
               SocketAddress podAddress = SocketAddress.inetSocketAddress(podPort, podIp);
-              add(podAddress);
+              endpoints.add(podAddress);
             }
           }
         }
+        set(endpoints);
       }
     }
   }
