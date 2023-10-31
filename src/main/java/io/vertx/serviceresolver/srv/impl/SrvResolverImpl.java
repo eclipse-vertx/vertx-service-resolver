@@ -11,29 +11,31 @@
 package io.vertx.serviceresolver.srv.impl;
 
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.dns.DnsClient;
 import io.vertx.core.dns.SrvRecord;
-import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.core.spi.resolver.address.AddressResolver;
+import io.vertx.core.spi.resolver.address.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
-import io.vertx.serviceresolver.impl.ResolverBase;
-import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
-import io.vertx.serviceresolver.srv.SrvResolver;
 import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
-public class SrvResolverImpl extends ResolverBase<ServiceAddress, SrvRecord, SrvServiceState> implements SrvResolver {
+public class SrvResolverImpl implements AddressResolver<ServiceAddress, SrvRecord, SrvServiceState> {
 
+  Vertx vertx;
+  DnsClient client;
   final String host;
   final int port;
-  final DnsClient client;
 
-  public SrvResolverImpl(VertxInternal vertx, LoadBalancer loadBalancer, SrvResolverOptions options) {
-    super(vertx, loadBalancer);
+  public SrvResolverImpl(Vertx vertx, SrvResolverOptions options) {
     this.host = options.getHost();
     this.port = options.getPort();
+    this.vertx = vertx;
     this.client = vertx.createDnsClient(port, host);
   }
 
@@ -43,13 +45,20 @@ public class SrvResolverImpl extends ResolverBase<ServiceAddress, SrvRecord, Srv
   }
 
   @Override
-  public Future<SrvServiceState> resolve(ServiceAddress address) {
+  public Future<SrvServiceState> resolve(Function<SrvRecord, Endpoint<SrvRecord>> factory, ServiceAddress address) {
     Future<List<SrvRecord>> fut = client.resolveSRV(address.name());
     return fut.map(records -> {
-      SrvServiceState state = new SrvServiceState(address.name(), System.currentTimeMillis(), loadBalancer);
-      state.add(records);
-      return state;
+      List<Endpoint<SrvRecord>> endpoints = new ArrayList<>();
+      for (SrvRecord record : records) {
+        endpoints.add(factory.apply(record));
+      }
+      return new SrvServiceState(System.currentTimeMillis(), endpoints);
     });
+  }
+
+  @Override
+  public List<Endpoint<SrvRecord>> endpoints(SrvServiceState state) {
+    return state.endpoints;
   }
 
   @Override
@@ -60,5 +69,14 @@ public class SrvResolverImpl extends ResolverBase<ServiceAddress, SrvRecord, Srv
   @Override
   public void dispose(SrvServiceState state) {
     // TODO
+  }
+
+  @Override
+  public boolean isValid(SrvServiceState state) {
+    return state.isValid();
+  }
+
+  @Override
+  public void close() {
   }
 }

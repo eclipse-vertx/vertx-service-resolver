@@ -34,6 +34,6 @@ public interface KubeResolver {
    * @return the resolver
    */
   static ServiceResolver create(KubeResolverOptions options) {
-    return new ServiceResolverImpl((vertx, lookup) -> new KubeResolverImpl(vertx, lookup.loadBalancer, options));
+    return new ServiceResolverImpl((vertx, lookup) -> new KubeResolverImpl(vertx, options));
   }
 }

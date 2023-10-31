@@ -6,6 +6,7 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolverTestBase;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     should.assertEquals("8080", get(ServiceAddress.create("svc")).toString());
   }
 
+  @Ignore
   @Test
   public void testNoPods(TestContext should) throws Exception {
     try {

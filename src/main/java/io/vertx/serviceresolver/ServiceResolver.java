@@ -11,18 +11,9 @@
 package io.vertx.serviceresolver;
 
 import io.vertx.core.net.AddressResolver;
-import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
 
 /**
  * Address lookup implementing service discovery and load balancing.
  */
 public interface ServiceResolver extends AddressResolver {
-
-  /**
-   * Set the load balancer to use.
-   * @param loadBalancer the load balancer
-   * @return a reference to this, so the API can be used fluently
-   */
-  ServiceResolver withLoadBalancer(LoadBalancer loadBalancer);
-
 }

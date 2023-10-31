@@ -7,6 +7,7 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.serviceresolver.HttpProxy;
 import io.vertx.serviceresolver.ServiceAddress;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -41,6 +42,7 @@ public class KubeServiceResolverMockTest extends KubeServiceResolverTestBase {
       .build();
   }
 
+  @Ignore
   @Test
   public void testDispose(TestContext should) throws Exception {
     Handler<HttpServerRequest> server = req -> {

@@ -17,22 +17,28 @@ import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.serviceresolver.impl.ServiceState;
-import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
+import io.vertx.core.spi.resolver.address.Endpoint;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
-class KubeServiceState extends ServiceState<SocketAddress> {
+class KubeServiceState {
 
-  String lastResourceVersion;
+  final String name;
   final Vertx vertx;
   final KubeResolverImpl resolver;
+  final Function<SocketAddress, Endpoint<SocketAddress>> endpointFactory;
+  String lastResourceVersion;
   boolean disposed;
   WebSocket ws;
+  AtomicReference<List<Endpoint<SocketAddress>>> endpoints = new AtomicReference<>(Collections.emptyList());
 
-  KubeServiceState(KubeResolverImpl resolver, Vertx vertx, String lastResourceVersion, String name, LoadBalancer loadBalancer) {
-    super(name, loadBalancer);
+  KubeServiceState(Function<SocketAddress, Endpoint<SocketAddress>> endpointFactory, KubeResolverImpl resolver, Vertx vertx, String lastResourceVersion, String name) {
+    this.endpointFactory = endpointFactory;
+    this.name = name;
     this.resolver = resolver;
     this.vertx = vertx;
     this.lastResourceVersion = lastResourceVersion;
@@ -94,9 +100,9 @@ class KubeServiceState extends ServiceState<SocketAddress> {
     JsonObject metadata = item.getJsonObject("metadata");
     String name = metadata.getString("name");
     if (this.name.equals(name)) {
-      clearEndpoints();
       JsonArray subsets = item.getJsonArray("subsets");
       if (subsets != null) {
+        List<Endpoint<SocketAddress>> endpoints = new ArrayList<>();
         for (int j = 0;j < subsets.size();j++) {
           List<String> podIps = new ArrayList<>();
           JsonObject subset = subsets.getJsonObject(j);
@@ -112,10 +118,11 @@ class KubeServiceState extends ServiceState<SocketAddress> {
             int podPort = port.getInteger("port");
             for (String podIp : podIps) {
               SocketAddress podAddress = SocketAddress.inetSocketAddress(podPort, podIp);
-              add(podAddress);
+              endpoints.add(endpointFactory.apply(podAddress));
             }
           }
         }
+        this.endpoints.set(endpoints);
       }
     }
   }

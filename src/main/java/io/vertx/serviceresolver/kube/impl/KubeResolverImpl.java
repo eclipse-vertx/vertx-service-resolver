@@ -18,36 +18,40 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.core.spi.resolver.address.AddressResolver;
+import io.vertx.core.spi.resolver.address.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
-import io.vertx.serviceresolver.impl.ResolverBase;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
-import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
+
+import java.util.List;
+import java.util.function.Function;
 
 import static io.vertx.core.http.HttpMethod.GET;
 
-public class KubeResolverImpl extends ResolverBase<ServiceAddress, SocketAddress, KubeServiceState> {
+public class KubeResolverImpl implements AddressResolver<ServiceAddress, SocketAddress, KubeServiceState> {
 
+  final KubeResolverOptions options;
   final String host;
   final int port;
-  final WebSocketClient wsClient;
-  final HttpClient httpClient;
+  Vertx vertx;
+  WebSocketClient wsClient;
+  HttpClient httpClient;
   final String namespace;
   final String bearerToken;
 
-  public KubeResolverImpl(Vertx vertx,
-                          LoadBalancer loadBalancer,
-                          KubeResolverOptions options) {
-    super(vertx, loadBalancer);
+  public KubeResolverImpl(Vertx vertx, KubeResolverOptions options) {
 
     HttpClientOptions httpClientOptions = options.getHttpClientOptions();
     WebSocketClientOptions wsClientOptions = options.getWebSocketClientOptions();
 
+    this.vertx = vertx;
+    this.wsClient = vertx.createWebSocketClient(wsClientOptions == null ? new WebSocketClientOptions() : wsClientOptions);
+    this.httpClient = vertx.createHttpClient(httpClientOptions == null ? new HttpClientOptions() : httpClientOptions);
+    this.options = options;
     this.namespace = options.getNamespace();
     this.host = options.getHost();
     this.port = options.getPort();
     this.bearerToken = options.getBearerToken();
-    this.wsClient = vertx.createWebSocketClient(wsClientOptions == null ? new WebSocketClientOptions() : wsClientOptions);
-    this.httpClient = vertx.createHttpClient(httpClientOptions == null ? new HttpClientOptions() : httpClientOptions);
   }
 
   @Override
@@ -56,7 +60,7 @@ public class KubeResolverImpl extends ResolverBase<ServiceAddress, SocketAddress
   }
 
   @Override
-  public Future<KubeServiceState> resolve(ServiceAddress serviceName) {
+  public Future<KubeServiceState> resolve(Function<SocketAddress, Endpoint<SocketAddress>> factory, ServiceAddress address) {
     return httpClient
       .request(GET, port, host, "/api/v1/namespaces/" + namespace + "/endpoints")
       .compose(req -> {
@@ -80,7 +84,7 @@ public class KubeResolverImpl extends ResolverBase<ServiceAddress, SocketAddress
         });
       }).map(response -> {
         String resourceVersion = response.getJsonObject("metadata").getString("resourceVersion");
-        KubeServiceState state = new KubeServiceState(this, vertx, resourceVersion, serviceName.name(), loadBalancer);
+        KubeServiceState state = new KubeServiceState(factory, this, vertx, resourceVersion, address.name());
         JsonArray items = response.getJsonArray("items");
         for (int i = 0;i < items.size();i++) {
           JsonObject item = items.getJsonObject(i);
@@ -96,6 +100,16 @@ public class KubeResolverImpl extends ResolverBase<ServiceAddress, SocketAddress
   }
 
   @Override
+  public List<Endpoint<SocketAddress>> endpoints(KubeServiceState state) {
+    return state.endpoints.get();
+  }
+
+  @Override
+  public void close() {
+
+  }
+
+  @Override
   public SocketAddress addressOfEndpoint(SocketAddress endpoint) {
     return endpoint;
   }
@@ -106,5 +120,10 @@ public class KubeResolverImpl extends ResolverBase<ServiceAddress, SocketAddress
     if (unused.ws != null) {
       unused.ws.close();
     }
+  }
+
+  @Override
+  public boolean isValid(KubeServiceState state) {
+    return true;
   }
 }

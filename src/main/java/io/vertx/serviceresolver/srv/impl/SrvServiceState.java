@@ -11,24 +11,23 @@
 package io.vertx.serviceresolver.srv.impl;
 
 import io.vertx.core.dns.SrvRecord;
-import io.vertx.serviceresolver.impl.EndpointImpl;
-import io.vertx.serviceresolver.impl.ServiceState;
-import io.vertx.serviceresolver.loadbalancing.LoadBalancer;
+import io.vertx.core.spi.resolver.address.Endpoint;
 
-class SrvServiceState extends ServiceState<SrvRecord> {
+import java.util.List;
+
+class SrvServiceState {
 
   final long timestamp;
+  final List<Endpoint<SrvRecord>> endpoints;
 
-  SrvServiceState(String name, long timestamp, LoadBalancer loadBalancer) {
-    super(name, loadBalancer);
-
+  public SrvServiceState(long timestamp, List<Endpoint<SrvRecord>> endpoints) {
     this.timestamp = timestamp;
+    this.endpoints = endpoints;
   }
 
-  @Override
-  protected boolean isValid() {
+  boolean isValid() {
     long now = System.currentTimeMillis();
-    for (EndpointImpl<SrvRecord> endpoint : endpoints()) {
+    for (Endpoint<SrvRecord> endpoint : endpoints) {
       if (now > endpoint.get().ttl() * 1000 + timestamp) {
         return false;
       }
