@@ -18,6 +18,15 @@ A service is addressed with a `{@link io.vertx.serviceresolver.ServiceAddress}` 
 {@link examples.ServiceResolverExamples#usingHttpClient}
 ----
 
+=== Client side load balancing
+
+The default load balancing behavior is _round-robin_, you can change the load balancer to use:
+
+[source,java]
+----
+{@link examples.ServiceResolverExamples#configuringHttpClientWithLoadBalancing}
+----
+
 == Kubernetes resolver
 
 The Kubernetes resolver locates services within a Kubernetes cluster.
@@ -43,7 +52,9 @@ You can override these settings
 
 == SRV resolver
 
-== Client side load balancing
+The SRV resolver uses DNS SRV records to resolve and locate services.
 
-todo
-
+[source,java]
+----
+{@link examples.ServiceResolverExamples#configuringSRVResolver}
+----

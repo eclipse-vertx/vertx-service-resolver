@@ -14,12 +14,15 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.loadbalancing.LoadBalancer;
 import io.vertx.core.net.AddressResolver;
 import io.vertx.docgen.Source;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolver;
 import io.vertx.serviceresolver.kube.KubeResolver;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
+import io.vertx.serviceresolver.srv.SrvResolver;
+import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
 @Source
 public class ServiceResolverExamples {
@@ -50,6 +53,14 @@ public class ServiceResolverExamples {
       }));
   }
 
+  public void configuringHttpClientWithLoadBalancing(Vertx vertx, AddressResolver resolver) {
+
+    HttpClient client = vertx.httpClientBuilder()
+      .withAddressResolver(resolver)
+      .withLoadBalancer(LoadBalancer.LEAST_REQUESTS)
+      .build();
+  }
+
   public void usingKubernetesResolver(Vertx vertx) {
 
     KubeResolverOptions options = new KubeResolverOptions();
@@ -72,4 +83,16 @@ public class ServiceResolverExamples {
       .setWebSocketClientOptions(wsClientOptions);
   }
 
+  public void configuringSRVResolver(Vertx vertx, String dnsServer, int dnsPort) {
+
+    SrvResolverOptions options = new SrvResolverOptions()
+      .setPort(dnsPort)
+      .setHost(dnsServer);
+
+    ServiceResolver resolver = SrvResolver.create(options);
+
+    HttpClient client = vertx.httpClientBuilder()
+      .withAddressResolver(resolver)
+      .build();
+  }
 }
