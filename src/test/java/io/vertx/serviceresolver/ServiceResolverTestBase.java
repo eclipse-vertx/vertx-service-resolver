@@ -3,7 +3,6 @@ package io.vertx.serviceresolver;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.net.SocketAddress;
@@ -34,7 +33,7 @@ public abstract class ServiceResolverTestBase {
 
   @Before
   public void setUp() throws Exception {
-    vertx = Vertx.vertx(new VertxOptions());
+    vertx = Vertx.vertx();
     pods = new ArrayList<>();
   }
 

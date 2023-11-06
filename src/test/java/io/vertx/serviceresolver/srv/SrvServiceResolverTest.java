@@ -1,5 +1,7 @@
 package io.vertx.serviceresolver.srv;
 
+import io.vertx.core.VertxOptions;
+import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolverTestBase;
@@ -45,16 +47,17 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
         Set<ResourceRecord> set = new HashSet<>();
         if ("_http._tcp.example.com".equals(questionRecord.getDomainName())) {
           for (int i = 0;i < 2;i++) {
-            ResourceRecordModifier rm = new ResourceRecordModifier();
-            rm.setDnsClass(RecordClass.IN);
-            rm.setDnsName("dns.vertx.io." + i);
-            rm.setDnsTtl(100);
-            rm.setDnsType(RecordType.SRV);
-            rm.put(DnsAttribute.SERVICE_PRIORITY, String.valueOf(1));
-            rm.put(DnsAttribute.SERVICE_WEIGHT, String.valueOf(1));
-            rm.put(DnsAttribute.SERVICE_PORT, String.valueOf(8080 + i));
-            rm.put(DnsAttribute.DOMAIN_NAME, "localhost");
-            set.add(rm.getEntry());
+            FakeDNSServer.Record record = new FakeDNSServer.Record(
+              "_http._tcp.example.com",
+              RecordType.SRV,
+              RecordClass.IN,
+              100
+            )
+              .set(DnsAttribute.SERVICE_PRIORITY, 1)
+              .set(DnsAttribute.SERVICE_WEIGHT, 1)
+              .set(DnsAttribute.SERVICE_PORT, 8080 + i)
+              .set(DnsAttribute.DOMAIN_NAME, "localhost");
+            set.add(record);
           }
         }
         return set;
@@ -66,7 +69,6 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
     should.assertEquals(Collections.emptySet(), set);
   }
 
-  @Ignore("No validity check implemented now...")
   @Test
   public void testExpiration(TestContext should) throws Exception {
     startPods(4, req -> {
@@ -78,17 +80,18 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
       public Set<ResourceRecord> getRecords(QuestionRecord questionRecord) {
         Set<ResourceRecord> set = new HashSet<>();
         if ("_http._tcp.example.com".equals(questionRecord.getDomainName())) {
-          for (int i = 0;i < ports.size();i++) {
-            ResourceRecordModifier rm = new ResourceRecordModifier();
-            rm.setDnsClass(RecordClass.IN);
-            rm.setDnsName("dns.vertx.io." + i);
-            rm.setDnsTtl(1);
-            rm.setDnsType(RecordType.SRV);
-            rm.put(DnsAttribute.SERVICE_PRIORITY, String.valueOf(1));
-            rm.put(DnsAttribute.SERVICE_WEIGHT, String.valueOf(1));
-            rm.put(DnsAttribute.SERVICE_PORT, String.valueOf(ports.get(i)));
-            rm.put(DnsAttribute.DOMAIN_NAME, "localhost");
-            set.add(rm.getEntry());
+          for (Integer port : ports) {
+            FakeDNSServer.Record record = new FakeDNSServer.Record(
+              "_http._tcp.example.com",
+              RecordType.SRV,
+              RecordClass.IN,
+              1
+            )
+              .set(DnsAttribute.SERVICE_PRIORITY, 1)
+              .set(DnsAttribute.SERVICE_WEIGHT, 1)
+              .set(DnsAttribute.SERVICE_PORT, port)
+              .set(DnsAttribute.DOMAIN_NAME, "localhost");
+            set.add(record);
           }
         }
         return set;
@@ -100,7 +103,7 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
     should.assertTrue(set.remove(get(ServiceAddress.create("_http._tcp.example.com.")).toString()));
     should.assertTrue(set.remove(get(ServiceAddress.create("_http._tcp.example.com.")).toString()));
     should.assertEquals(Collections.emptySet(), set);
-    Thread.sleep(1000);
+    Thread.sleep(1500);
     ports.clear();
     ports.add(8082);
     ports.add(8083);
