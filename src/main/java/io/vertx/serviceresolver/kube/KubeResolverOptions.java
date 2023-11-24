@@ -71,8 +71,8 @@ public class KubeResolverOptions {
     File caFile = new File(KUBERNETES_SERVICE_ACCOUNT_CA);
     if (caFile.exists()) {
       PemTrustOptions pemTrustOptions = new PemTrustOptions().addCertPath(KUBERNETES_SERVICE_ACCOUNT_CA);
-      httpClientOptions.setPemTrustOptions(pemTrustOptions);
-      webSocketClientOptions.setPemTrustOptions(pemTrustOptions);
+      httpClientOptions.setTrustOptions(pemTrustOptions);
+      webSocketClientOptions.setTrustOptions(pemTrustOptions);
     }
     DEFAULT_HOST = host;
     DEFAULT_PORT = port;
