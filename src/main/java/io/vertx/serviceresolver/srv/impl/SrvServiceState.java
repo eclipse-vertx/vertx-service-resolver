@@ -10,28 +10,19 @@
  */
 package io.vertx.serviceresolver.srv.impl;
 
-import io.vertx.core.dns.SrvRecord;
-import io.vertx.core.spi.resolver.address.Endpoint;
-
 import java.util.List;
 
-class SrvServiceState {
+class SrvServiceState<B> {
 
-  final long timestamp;
-  final List<Endpoint<SrvRecord>> endpoints;
+  final List<B> endpoints;
+  final long expirationMs;
 
-  public SrvServiceState(long timestamp, List<Endpoint<SrvRecord>> endpoints) {
-    this.timestamp = timestamp;
+  public SrvServiceState(List<B> endpoints, long expirationMs) {
     this.endpoints = endpoints;
+    this.expirationMs = expirationMs;
   }
 
   boolean isValid() {
-    long now = System.currentTimeMillis();
-    for (Endpoint<SrvRecord> endpoint : endpoints) {
-      if (now > endpoint.get().ttl() * 1000 + timestamp) {
-        return false;
-      }
-    }
-    return true;
+    return System.currentTimeMillis() <= expirationMs;
   }
 }

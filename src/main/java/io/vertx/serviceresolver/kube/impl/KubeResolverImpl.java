@@ -19,7 +19,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.resolver.address.AddressResolver;
-import io.vertx.core.spi.resolver.address.Endpoint;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
 
@@ -28,7 +27,7 @@ import java.util.function.Function;
 
 import static io.vertx.core.http.HttpMethod.GET;
 
-public class KubeResolverImpl implements AddressResolver<ServiceAddress, SocketAddress, KubeServiceState> {
+public class KubeResolverImpl<B> implements AddressResolver<ServiceAddress, SocketAddress, KubeServiceState<B>, B> {
 
   final KubeResolverOptions options;
   final String host;
@@ -60,7 +59,7 @@ public class KubeResolverImpl implements AddressResolver<ServiceAddress, SocketA
   }
 
   @Override
-  public Future<KubeServiceState> resolve(Function<SocketAddress, Endpoint<SocketAddress>> factory, ServiceAddress address) {
+  public Future<KubeServiceState<B>> resolve(Function<SocketAddress, B> factory, ServiceAddress address) {
     return httpClient
       .request(GET, port, host, "/api/v1/namespaces/" + namespace + "/endpoints")
       .compose(req -> {
@@ -84,7 +83,7 @@ public class KubeResolverImpl implements AddressResolver<ServiceAddress, SocketA
         });
       }).map(response -> {
         String resourceVersion = response.getJsonObject("metadata").getString("resourceVersion");
-        KubeServiceState state = new KubeServiceState(factory, this, vertx, resourceVersion, address.name());
+        KubeServiceState<B> state = new KubeServiceState<>(factory, this, vertx, resourceVersion, address.name());
         JsonArray items = response.getJsonArray("items");
         for (int i = 0;i < items.size();i++) {
           JsonObject item = items.getJsonObject(i);
@@ -93,14 +92,14 @@ public class KubeResolverImpl implements AddressResolver<ServiceAddress, SocketA
         return state;
       }).andThen(ar -> {
         if (ar.succeeded()) {
-          KubeServiceState res = ar.result();
+          KubeServiceState<B> res = ar.result();
           res.connectWebSocket();
         }
       });
   }
 
   @Override
-  public List<Endpoint<SocketAddress>> endpoints(KubeServiceState state) {
+  public List<B> endpoints(KubeServiceState<B> state) {
     return state.endpoints.get();
   }
 

@@ -4,7 +4,6 @@ import io.vertx.core.Future;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.resolver.address.AddressResolver;
-import io.vertx.core.spi.resolver.address.Endpoint;
 import io.vertx.serviceresolver.impl.*;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolver;
@@ -14,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
-public class MockResolver implements AddressResolver<ServiceAddress, SocketAddress, MockServiceState> {
+public class MockResolver<B> implements AddressResolver<ServiceAddress, SocketAddress, MockServiceState<B>, B> {
 
   public static ServiceResolver create(MockController controller) {
     return new ServiceResolverImpl((vertx, lookup) -> {
@@ -48,12 +47,12 @@ public class MockResolver implements AddressResolver<ServiceAddress, SocketAddre
   }
 
   @Override
-  public Future<MockServiceState> resolve(Function<SocketAddress, Endpoint<SocketAddress>> factory, ServiceAddress address) {
+  public Future<MockServiceState<B>> resolve(Function<SocketAddress, B> factory, ServiceAddress address) {
     List<SocketAddress> endpoints = templates.get(address.name());
     if (endpoints == null) {
       return Future.failedFuture("No addresses for service svc");
     }
-    MockServiceState state = new MockServiceState();
+    MockServiceState<B> state = new MockServiceState<>();
 //    state.set(endpoints);
     return Future.succeededFuture(state);
   }
@@ -64,7 +63,7 @@ public class MockResolver implements AddressResolver<ServiceAddress, SocketAddre
   }
 
   @Override
-  public List<Endpoint<SocketAddress>> endpoints(MockServiceState state) {
+  public List<B> endpoints(MockServiceState state) {
     throw new UnsupportedOperationException();
   }
 

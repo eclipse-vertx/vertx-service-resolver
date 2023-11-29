@@ -1,14 +1,11 @@
 package io.vertx.serviceresolver.srv;
 
-import io.vertx.core.VertxOptions;
-import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolverTestBase;
 import io.vertx.test.fakedns.FakeDNSServer;
 import org.apache.directory.server.dns.messages.*;
 import org.apache.directory.server.dns.store.DnsAttribute;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.apache.directory.server.dns.store.RecordStore;
 

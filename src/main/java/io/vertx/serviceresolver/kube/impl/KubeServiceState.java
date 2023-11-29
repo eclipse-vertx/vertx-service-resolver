@@ -17,7 +17,6 @@ import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.spi.resolver.address.Endpoint;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,18 +24,18 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-class KubeServiceState {
+class KubeServiceState<B> {
 
   final String name;
   final Vertx vertx;
   final KubeResolverImpl resolver;
-  final Function<SocketAddress, Endpoint<SocketAddress>> endpointFactory;
+  final Function<SocketAddress, B> endpointFactory;
   String lastResourceVersion;
   boolean disposed;
   WebSocket ws;
-  AtomicReference<List<Endpoint<SocketAddress>>> endpoints = new AtomicReference<>(Collections.emptyList());
+  AtomicReference<List<B>> endpoints = new AtomicReference<>(Collections.emptyList());
 
-  KubeServiceState(Function<SocketAddress, Endpoint<SocketAddress>> endpointFactory, KubeResolverImpl resolver, Vertx vertx, String lastResourceVersion, String name) {
+  KubeServiceState(Function<SocketAddress, B> endpointFactory, KubeResolverImpl resolver, Vertx vertx, String lastResourceVersion, String name) {
     this.endpointFactory = endpointFactory;
     this.name = name;
     this.resolver = resolver;
@@ -102,7 +101,7 @@ class KubeServiceState {
     if (this.name.equals(name)) {
       JsonArray subsets = item.getJsonArray("subsets");
       if (subsets != null) {
-        List<Endpoint<SocketAddress>> endpoints = new ArrayList<>();
+        List<B> endpoints = new ArrayList<>();
         for (int j = 0;j < subsets.size();j++) {
           List<String> podIps = new ArrayList<>();
           JsonObject subset = subsets.getJsonObject(j);

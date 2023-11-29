@@ -1,6 +1,6 @@
 package mock;
 
-public class MockServiceState {
+public class MockServiceState<B> {
 
   boolean disposed;
 
