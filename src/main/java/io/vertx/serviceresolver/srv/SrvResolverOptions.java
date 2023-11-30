@@ -11,9 +11,11 @@
 package io.vertx.serviceresolver.srv;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 
-@DataObject(generateConverter = true, publicConverter = false)
+@DataObject
+@JsonGen(publicConverter = false)
 public class SrvResolverOptions {
 
   private String host;

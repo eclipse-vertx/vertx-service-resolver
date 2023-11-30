@@ -11,6 +11,7 @@
 package io.vertx.serviceresolver.kube;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.WebSocketClientOptions;
@@ -24,7 +25,8 @@ import java.nio.file.Files;
 /**
  *
  */
-@DataObject(generateConverter = true, publicConverter = false)
+@DataObject
+@JsonGen(publicConverter = false)
 public class KubeResolverOptions {
 
   private static final String KUBERNETES_SERVICE_HOST = "KUBERNETES_SERVICE_HOST";
