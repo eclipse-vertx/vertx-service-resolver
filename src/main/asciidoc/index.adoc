@@ -31,6 +31,40 @@ The default load balancing behavior is _round-robin_, you can change the load ba
 
 The Kubernetes resolver locates services within a Kubernetes cluster.
 
+[IMPORTANT]
+====
+The Kubernetes resolver requires the `endpoints` resource to be accessible using the service account configured for the pod.
+
+Here is an example configuration of role and role binding for the `default` service account:
+
+[source,yaml]
+----
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: observe-endpoints
+  namespace: default
+rules:
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: observe-endpoints
+  namespace: default
+roleRef:
+  kind: Role
+  name: observe-endpoints
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: default
+----
+====
+
 [source,java]
 ----
 {@link examples.ServiceResolverExamples#usingKubernetesResolver}
@@ -43,7 +77,7 @@ The default resolver options values are loaded from the pod environment
 - `/var/run/secrets/kubernetes.io/serviceaccount/ca.crt`
 - `/var/run/secrets/kubernetes.io/serviceaccount/namespace`
 
-You can override these settings
+You can override these settings.
 
 [source,java]
 ----
