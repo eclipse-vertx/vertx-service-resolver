@@ -2,20 +2,43 @@
 
 The Service Resolver library is a plugin that lets Vert.x clients call services using logical service names instead of network addresses. The service resolver is also able to perform client side load balancing with the usual strategies.
 
-== Getting started with Vert.x HTTP client
+== Getting started with the Vert.x HTTP Client
 
-Given a resolver, you can configure a Vert.x HTTP client to use it thansk to an HTTP client builder
+Given a resolver, you can configure a Vert.x HTTP Client to use it thanks to an {@link io.vertx.core.http.HttpClientBuilder}.
 
 [source,java]
 ----
 {@link examples.ServiceResolverExamples#configuringHttpClient}
 ----
 
-A service is addressed with a `{@link io.vertx.serviceresolver.ServiceAddress}` instead of a `{@link io.vertx.core.net.SocketAddress}`
+A service is addressed with a `{@link io.vertx.serviceresolver.ServiceAddress}` instead of a `{@link io.vertx.core.net.SocketAddress}`.
 
 [source,java]
 ----
 {@link examples.ServiceResolverExamples#usingHttpClient}
+----
+
+== Getting started with the Vert.x Web Client
+
+Given a resolver, you can configure a Vert.x Web Client to use it thanks to an {@link io.vertx.core.http.HttpClientBuilder}.
+
+[source,java]
+----
+HttpClient httpClient = vertx.httpClientBuilder()
+  .withAddressResolver(resolver)
+  .build();
+WebClient webClient = WebClient.wrap(httpClient);
+----
+
+A service is addressed with a `{@link io.vertx.serviceresolver.ServiceAddress}`.
+
+[source,java]
+----
+ServiceAddress serviceAddress = ServiceAddress.create("the-service");
+
+Future<HttpResponse<Buffer>> future = webClient
+  .request(HttpMethod.GET, new RequestOptions().setServer(serviceAddress))
+  .send();
 ----
 
 === Client side load balancing
