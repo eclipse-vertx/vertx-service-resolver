@@ -17,26 +17,26 @@ import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.core.spi.resolver.address.EndpointListBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 
 class KubeServiceState<B> {
 
   final String name;
   final Vertx vertx;
   final KubeResolverImpl resolver;
-  final Function<SocketAddress, B> endpointFactory;
+  final EndpointListBuilder<B, SocketAddress> endpointsBuilder;
   String lastResourceVersion;
   boolean disposed;
   WebSocket ws;
-  AtomicReference<List<B>> endpoints = new AtomicReference<>(Collections.emptyList());
+  AtomicReference<B> endpoints = new AtomicReference<>();
 
-  KubeServiceState(Function<SocketAddress, B> endpointFactory, KubeResolverImpl resolver, Vertx vertx, String lastResourceVersion, String name) {
-    this.endpointFactory = endpointFactory;
+  KubeServiceState(EndpointListBuilder<B, SocketAddress> endpointsBuilder, KubeResolverImpl resolver, Vertx vertx, String lastResourceVersion, String name) {
+    this.endpointsBuilder = endpointsBuilder;
     this.name = name;
     this.resolver = resolver;
     this.vertx = vertx;
@@ -101,7 +101,7 @@ class KubeServiceState<B> {
     if (this.name.equals(name)) {
       JsonArray subsets = item.getJsonArray("subsets");
       if (subsets != null) {
-        List<B> endpoints = new ArrayList<>();
+        EndpointListBuilder<B, SocketAddress> builder = endpointsBuilder;
         for (int j = 0;j < subsets.size();j++) {
           List<String> podIps = new ArrayList<>();
           JsonObject subset = subsets.getJsonObject(j);
@@ -117,11 +117,11 @@ class KubeServiceState<B> {
             int podPort = port.getInteger("port");
             for (String podIp : podIps) {
               SocketAddress podAddress = SocketAddress.inetSocketAddress(podPort, podIp);
-              endpoints.add(endpointFactory.apply(podAddress));
+              builder = builder.addEndpoint(podAddress, podIp + "-" + podPort);
             }
           }
         }
-        this.endpoints.set(endpoints);
+        this.endpoints.set(builder.build());
       }
     }
   }

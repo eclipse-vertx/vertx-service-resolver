@@ -14,10 +14,10 @@ import java.util.List;
 
 class SrvServiceState<B> {
 
-  final List<B> endpoints;
+  final B endpoints;
   final long expirationMs;
 
-  public SrvServiceState(List<B> endpoints, long expirationMs) {
+  public SrvServiceState(B endpoints, long expirationMs) {
     this.endpoints = endpoints;
     this.expirationMs = expirationMs;
   }

@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.resolver.address.AddressResolver;
+import io.vertx.core.spi.resolver.address.EndpointListBuilder;
 import io.vertx.serviceresolver.impl.*;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolver;
@@ -47,7 +48,7 @@ public class MockResolver<B> implements AddressResolver<ServiceAddress, SocketAd
   }
 
   @Override
-  public Future<MockServiceState<B>> resolve(Function<SocketAddress, B> factory, ServiceAddress address) {
+  public Future<MockServiceState<B>> resolve(ServiceAddress address, EndpointListBuilder<B, SocketAddress> builder) {
     List<SocketAddress> endpoints = templates.get(address.name());
     if (endpoints == null) {
       return Future.failedFuture("No addresses for service svc");
