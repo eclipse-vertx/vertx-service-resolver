@@ -17,6 +17,7 @@ import io.vertx.core.dns.SrvRecord;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.resolver.address.AddressResolver;
+import io.vertx.core.spi.resolver.address.EndpointListBuilder;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
@@ -44,21 +45,21 @@ public class SrvResolverImpl<B> implements AddressResolver<ServiceAddress, SrvRe
   }
 
   @Override
-  public Future<SrvServiceState<B>> resolve(Function<SrvRecord, B> factory, ServiceAddress address) {
+  public Future<SrvServiceState<B>> resolve(ServiceAddress address, EndpointListBuilder<B, SrvRecord> builder) {
     Future<List<SrvRecord>> fut = client.resolveSRV(address.name());
     return fut.map(records -> {
       long ttl = 10_000_000;
-      List<B> endpoints = new ArrayList<>();
+      EndpointListBuilder<B, SrvRecord> tmp = builder;
       for (SrvRecord record : records) {
-        endpoints.add(factory.apply(record));
+        tmp = tmp.addEndpoint(record, record.target() + "-" + record.port());
         ttl = Math.min(ttl, record.ttl());
       }
-      return new SrvServiceState<>(endpoints, System.currentTimeMillis() + 1000 * ttl);
+      return new SrvServiceState<>(tmp.build(), System.currentTimeMillis() + 1000 * ttl);
     });
   }
 
   @Override
-  public List<B> endpoints(SrvServiceState<B> state) {
+  public B endpoints(SrvServiceState<B> state) {
     return state.endpoints;
   }
 

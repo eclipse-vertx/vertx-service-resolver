@@ -19,6 +19,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.resolver.address.AddressResolver;
+import io.vertx.core.spi.resolver.address.EndpointListBuilder;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
 
@@ -59,7 +60,7 @@ public class KubeResolverImpl<B> implements AddressResolver<ServiceAddress, Sock
   }
 
   @Override
-  public Future<KubeServiceState<B>> resolve(Function<SocketAddress, B> factory, ServiceAddress address) {
+  public Future<KubeServiceState<B>> resolve(ServiceAddress address, EndpointListBuilder<B, SocketAddress> builder) {
     return httpClient
       .request(GET, port, host, "/api/v1/namespaces/" + namespace + "/endpoints")
       .compose(req -> {
@@ -83,7 +84,7 @@ public class KubeResolverImpl<B> implements AddressResolver<ServiceAddress, Sock
         });
       }).map(response -> {
         String resourceVersion = response.getJsonObject("metadata").getString("resourceVersion");
-        KubeServiceState<B> state = new KubeServiceState<>(factory, this, vertx, resourceVersion, address.name());
+        KubeServiceState<B> state = new KubeServiceState<>(builder, this, vertx, resourceVersion, address.name());
         JsonArray items = response.getJsonArray("items");
         for (int i = 0;i < items.size();i++) {
           JsonObject item = items.getJsonObject(i);
@@ -99,7 +100,7 @@ public class KubeResolverImpl<B> implements AddressResolver<ServiceAddress, Sock
   }
 
   @Override
-  public List<B> endpoints(KubeServiceState<B> state) {
+  public B endpoints(KubeServiceState<B> state) {
     return state.endpoints.get();
   }
 
