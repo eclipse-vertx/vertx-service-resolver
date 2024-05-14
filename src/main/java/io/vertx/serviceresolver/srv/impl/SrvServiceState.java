@@ -10,19 +10,71 @@
  */
 package io.vertx.serviceresolver.srv.impl;
 
+import io.vertx.core.Future;
+import io.vertx.core.dns.SrvRecord;
+import io.vertx.core.spi.endpoint.EndpointBuilder;
+import io.vertx.serviceresolver.ServiceAddress;
+
 import java.util.List;
 
 class SrvServiceState<B> {
 
-  final B endpoints;
-  final long expirationMs;
+  final ServiceAddress address;
+  final SrvResolverImpl<B> resolver;
+  final EndpointBuilder<B, SrvRecord> builder;
+  private B endpoints;
+  private long timerID;
+  private boolean disposed;
 
-  public SrvServiceState(B endpoints, long expirationMs) {
-    this.endpoints = endpoints;
-    this.expirationMs = expirationMs;
+  public SrvServiceState(SrvResolverImpl<B> resolve, EndpointBuilder<B, SrvRecord> builder, ServiceAddress address) {
+    this.resolver = resolve;
+    this.address = address;
+    this.builder = builder;
+    this.timerID = -1L;
   }
 
-  boolean isValid() {
-    return System.currentTimeMillis() <= expirationMs;
+  synchronized B endpoints() {
+    return endpoints;
+  }
+
+  Future<?> refresh() {
+    synchronized (this) {
+      if (disposed || timerID >= 0L) {
+        return null;
+      }
+      Future<List<SrvRecord>> fut = resolver.client.resolveSRV(address.name());
+      return fut.andThen(ar -> {
+        if (ar.succeeded()) {
+          List<SrvRecord> records = ar.result();
+          long ttl = 10_000_000;
+          EndpointBuilder<B, SrvRecord> tmp = builder;
+          for (SrvRecord record : records) {
+            tmp = tmp.addNode(record, record.target() + "-" + record.port());
+            ttl = Math.min(ttl, record.ttl());
+          }
+          synchronized (SrvServiceState.this) {
+            endpoints = tmp.build();
+          }
+          timerID = resolver.vertx.setTimer(ttl * 1000, id -> {
+            synchronized (SrvServiceState.this) {
+              timerID = -1;
+            }
+            refresh();
+          });
+        }
+      });
+    }
+  }
+
+  void dispose() {
+    long id;
+    synchronized (this) {
+      id = timerID;
+      timerID = -1L;
+      disposed = true;
+    }
+    if (id >= 0) {
+      resolver.vertx.cancelTimer(id);
+    }
   }
 }

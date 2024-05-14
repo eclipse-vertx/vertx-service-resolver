@@ -18,8 +18,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.spi.resolver.address.AddressResolver;
-import io.vertx.core.spi.resolver.address.EndpointListBuilder;
+import io.vertx.core.spi.endpoint.EndpointBuilder;
+import io.vertx.core.spi.endpoint.EndpointResolver;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
 
@@ -28,7 +28,7 @@ import java.util.function.Function;
 
 import static io.vertx.core.http.HttpMethod.GET;
 
-public class KubeResolverImpl<B> implements AddressResolver<ServiceAddress, SocketAddress, KubeServiceState<B>, B> {
+public class KubeResolverImpl<B> implements EndpointResolver<ServiceAddress, SocketAddress, KubeServiceState<B>, B> {
 
   final KubeResolverOptions options;
   final String host;
@@ -60,7 +60,7 @@ public class KubeResolverImpl<B> implements AddressResolver<ServiceAddress, Sock
   }
 
   @Override
-  public Future<KubeServiceState<B>> resolve(ServiceAddress address, EndpointListBuilder<B, SocketAddress> builder) {
+  public Future<KubeServiceState<B>> resolve(ServiceAddress address, EndpointBuilder<B, SocketAddress> builder) {
     return httpClient
       .request(GET, port, host, "/api/v1/namespaces/" + namespace + "/endpoints")
       .compose(req -> {
@@ -100,8 +100,8 @@ public class KubeResolverImpl<B> implements AddressResolver<ServiceAddress, Sock
   }
 
   @Override
-  public B endpoints(KubeServiceState<B> state) {
-    return state.endpoints.get();
+  public B endpoint(KubeServiceState<B> data) {
+    return data.endpoints.get();
   }
 
   @Override
@@ -110,12 +110,12 @@ public class KubeResolverImpl<B> implements AddressResolver<ServiceAddress, Sock
   }
 
   @Override
-  public SocketAddress addressOfEndpoint(SocketAddress endpoint) {
+  public SocketAddress addressOf(SocketAddress endpoint) {
     return endpoint;
   }
 
   @Override
-  public void dispose(KubeServiceState unused) {
+  public void dispose(KubeServiceState<B> unused) {
     unused.disposed = true;
     if (unused.ws != null) {
       unused.ws.close();
@@ -123,7 +123,7 @@ public class KubeResolverImpl<B> implements AddressResolver<ServiceAddress, Sock
   }
 
   @Override
-  public boolean isValid(KubeServiceState state) {
+  public boolean isValid(KubeServiceState<B> state) {
     return true;
   }
 }

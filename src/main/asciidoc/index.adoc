@@ -2,7 +2,29 @@
 
 The Service Resolver library is a plugin that lets Vert.x clients call services using logical service names instead of network addresses. The service resolver is also able to perform client side load balancing with the usual strategies.
 
-== Getting started with the Vert.x HTTP Client
+You can use a service resolver as a client to query a resolver or integrated natively with a Vert.x client.
+
+== Service resolver client
+
+You can query a service resolver with the service resolver client.
+
+[source,java]
+----
+{@link examples.ServiceResolverExamples#serviceResolverClient}
+----
+
+You can also let the load balancer select nodes
+
+[source,java]
+----
+{@link examples.ServiceResolverExamples#serviceResolverClient}
+----
+
+== Client integration
+
+The service resolver is integrated with the Vert.x HTTP and Web clients.
+
+=== Getting started with the Vert.x HTTP Client
 
 Given a resolver, you can configure a Vert.x HTTP Client to use it thanks to an {@link io.vertx.core.http.HttpClientBuilder}.
 
@@ -18,7 +40,7 @@ A service is addressed with a `{@link io.vertx.serviceresolver.ServiceAddress}` 
 {@link examples.ServiceResolverExamples#usingHttpClient}
 ----
 
-== Getting started with the Vert.x Web Client
+=== Getting started with the Vert.x Web Client
 
 Given a resolver, you can configure a Vert.x Web Client to use it thanks to an {@link io.vertx.core.http.HttpClientBuilder}.
 
@@ -50,7 +72,11 @@ The default load balancing behavior is _round-robin_, you can change the load ba
 {@link examples.ServiceResolverExamples#configuringHttpClientWithLoadBalancing}
 ----
 
-== Kubernetes resolver
+== Service resolver implementations
+
+The service resolver integrates with a few discovery services such as Kubernetes and DNS SRV records.
+
+=== Kubernetes resolver
 
 The Kubernetes resolver locates services within a Kubernetes cluster.
 
@@ -107,7 +133,7 @@ You can override these settings.
 {@link examples.ServiceResolverExamples#configuringKubernetesResolver}
 ----
 
-== SRV resolver
+=== SRV resolver
 
 The SRV resolver uses DNS SRV records to resolve and locate services.
 

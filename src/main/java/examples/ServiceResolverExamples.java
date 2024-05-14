@@ -14,18 +14,60 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
-import io.vertx.core.loadbalancing.LoadBalancer;
 import io.vertx.core.net.AddressResolver;
+import io.vertx.core.net.endpoint.Endpoint;
+import io.vertx.core.net.endpoint.EndpointNode;
+import io.vertx.core.net.endpoint.LoadBalancer;
 import io.vertx.docgen.Source;
 import io.vertx.serviceresolver.ServiceAddress;
-import io.vertx.serviceresolver.ServiceResolver;
+import io.vertx.serviceresolver.ServiceResolverClient;
 import io.vertx.serviceresolver.kube.KubeResolver;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
 import io.vertx.serviceresolver.srv.SrvResolver;
 import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
+import java.util.List;
+
 @Source
 public class ServiceResolverExamples {
+
+  public void serviceResolverClient(Vertx vertx) {
+
+    ServiceResolverClient client = ServiceResolverClient.create(vertx, new KubeResolverOptions());
+
+    // Resolve a service endpoint
+    Future<Endpoint> fut = client.resolveEndpoint(ServiceAddress.create("the-service"));
+
+    fut.onSuccess(endpoint -> {
+
+      // Print physical nodes details
+      List<EndpointNode> nodes = endpoint.nodes();
+      for (EndpointNode node : nodes) {
+        System.out.println("Available node: " + node.address());
+      }
+    });
+  }
+
+  public void serviceResolverClientLoadBalancing(Vertx vertx) {
+
+    ServiceResolverClient client = ServiceResolverClient.create(
+      vertx,
+      LoadBalancer.POWER_OF_TWO_CHOICES,
+      new KubeResolverOptions());
+
+    // Resolve a service endpoint
+    client
+      .resolveEndpoint(ServiceAddress.create("the-service"))
+      .onSuccess(endpoint -> {
+
+        // Let the load balancer select an endpoint endpoint node
+        // by default: round robin
+        for (int i = 0; i < 10; i++) {
+          EndpointNode node = endpoint.selectNode();
+          System.out.println("Selected node: " + node.address());
+        }
+      });
+  }
 
   public void configuringHttpClient(Vertx vertx, AddressResolver resolver) {
 
@@ -65,7 +107,7 @@ public class ServiceResolverExamples {
 
     KubeResolverOptions options = new KubeResolverOptions();
 
-    ServiceResolver resolver = KubeResolver.create(options);
+    AddressResolver resolver = KubeResolver.create(options);
 
     HttpClient client = vertx.httpClientBuilder()
       .withAddressResolver(resolver)
@@ -89,7 +131,7 @@ public class ServiceResolverExamples {
       .setPort(dnsPort)
       .setHost(dnsServer);
 
-    ServiceResolver resolver = SrvResolver.create(options);
+    AddressResolver resolver = SrvResolver.create(options);
 
     HttpClient client = vertx.httpClientBuilder()
       .withAddressResolver(resolver)
