@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2011-2024 Contributors to the Eclipse Foundation
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License 2.0 which is available at
@@ -10,10 +10,11 @@
  */
 package io.vertx.serviceresolver;
 
-import io.vertx.core.net.AddressResolver;
+import io.vertx.codegen.annotations.DataObject;
 
 /**
- * Address lookup implementing service discovery and load balancing.
+ * Base class for service resolver options.
  */
-public interface ServiceResolver extends AddressResolver {
+@DataObject
+public abstract class ServiceResolverOptions {
 }

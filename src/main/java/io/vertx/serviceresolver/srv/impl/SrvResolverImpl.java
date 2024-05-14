@@ -16,16 +16,14 @@ import io.vertx.core.dns.DnsClient;
 import io.vertx.core.dns.SrvRecord;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.spi.resolver.address.AddressResolver;
-import io.vertx.core.spi.resolver.address.EndpointListBuilder;
+import io.vertx.core.spi.endpoint.EndpointBuilder;
+import io.vertx.core.spi.endpoint.EndpointResolver;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
-public class SrvResolverImpl<B> implements AddressResolver<ServiceAddress, SrvRecord, SrvServiceState<B>, B> {
+public class SrvResolverImpl<B> implements EndpointResolver<ServiceAddress, SrvRecord, SrvServiceState<B>, B> {
 
   Vertx vertx;
   DnsClient client;
@@ -45,37 +43,35 @@ public class SrvResolverImpl<B> implements AddressResolver<ServiceAddress, SrvRe
   }
 
   @Override
-  public Future<SrvServiceState<B>> resolve(ServiceAddress address, EndpointListBuilder<B, SrvRecord> builder) {
-    Future<List<SrvRecord>> fut = client.resolveSRV(address.name());
-    return fut.map(records -> {
-      long ttl = 10_000_000;
-      EndpointListBuilder<B, SrvRecord> tmp = builder;
-      for (SrvRecord record : records) {
-        tmp = tmp.addEndpoint(record, record.target() + "-" + record.port());
-        ttl = Math.min(ttl, record.ttl());
-      }
-      return new SrvServiceState<>(tmp.build(), System.currentTimeMillis() + 1000 * ttl);
-    });
+  public Future<SrvServiceState<B>> resolve(ServiceAddress address, EndpointBuilder<B, SrvRecord> builder) {
+    SrvServiceState<B> state = new SrvServiceState<>(this, builder, address);
+    return state
+      .refresh()
+      .map(state);
+  }
+
+  private void resolve2(ServiceAddress address, EndpointBuilder<B, SrvRecord> builder) {
+
   }
 
   @Override
-  public B endpoints(SrvServiceState<B> state) {
-    return state.endpoints;
+  public B endpoint(SrvServiceState<B> data) {
+    return data.endpoints();
   }
 
   @Override
-  public SocketAddress addressOfEndpoint(SrvRecord record) {
+  public SocketAddress addressOf(SrvRecord record) {
     return SocketAddress.inetSocketAddress(record.port(), record.target());
   }
 
   @Override
   public void dispose(SrvServiceState state) {
-    // TODO
+    state.dispose();
   }
 
   @Override
   public boolean isValid(SrvServiceState state) {
-    return state.isValid();
+    return true;
   }
 
   @Override

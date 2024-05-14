@@ -17,6 +17,7 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.WebSocketClientOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.PemTrustOptions;
+import io.vertx.serviceresolver.ServiceResolverOptions;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +28,7 @@ import java.nio.file.Files;
  */
 @DataObject
 @JsonGen(publicConverter = false)
-public class KubeResolverOptions {
+public class KubeResolverOptions extends ServiceResolverOptions {
 
   private static final String KUBERNETES_SERVICE_HOST = "KUBERNETES_SERVICE_HOST";
   private static final String KUBERNETES_SERVICE_PORT = "KUBERNETES_SERVICE_PORT";

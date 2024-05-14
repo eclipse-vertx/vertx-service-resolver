@@ -10,7 +10,7 @@
  */
 package io.vertx.serviceresolver;
 
-import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.net.Address;
 
 import java.util.Objects;
@@ -20,7 +20,7 @@ import java.util.Objects;
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-@VertxGen
+@DataObject
 public interface ServiceAddress extends Address {
 
   /**

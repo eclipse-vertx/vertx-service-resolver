@@ -10,8 +10,8 @@
  */
 package io.vertx.serviceresolver.kube;
 
-import io.vertx.serviceresolver.ServiceResolver;
-import io.vertx.serviceresolver.impl.ServiceResolverImpl;
+import io.vertx.core.net.AddressResolver;
+import io.vertx.serviceresolver.impl.ServiceAddressResolver;
 import io.vertx.serviceresolver.kube.impl.KubeResolverImpl;
 
 /**
@@ -24,7 +24,7 @@ public interface KubeResolver {
    *
    * @return the resolver
    */
-  static ServiceResolver create() {
+  static AddressResolver create() {
     return create(new KubeResolverOptions());
   }
 
@@ -33,7 +33,7 @@ public interface KubeResolver {
    *
    * @return the resolver
    */
-  static ServiceResolver create(KubeResolverOptions options) {
-    return new ServiceResolverImpl((vertx, lookup) -> new KubeResolverImpl(vertx, options));
+  static AddressResolver create(KubeResolverOptions options) {
+    return new ServiceAddressResolver((vertx, lookup) -> new KubeResolverImpl(vertx, options));
   }
 }

@@ -13,10 +13,11 @@ package io.vertx.serviceresolver.srv;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
+import io.vertx.serviceresolver.ServiceResolverOptions;
 
 @DataObject
 @JsonGen(publicConverter = false)
-public class SrvResolverOptions {
+public class SrvResolverOptions extends ServiceResolverOptions {
 
   private String host;
   private int port;

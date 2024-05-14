@@ -17,10 +17,9 @@ import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.spi.resolver.address.EndpointListBuilder;
+import io.vertx.core.spi.endpoint.EndpointBuilder;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -29,13 +28,13 @@ class KubeServiceState<B> {
   final String name;
   final Vertx vertx;
   final KubeResolverImpl resolver;
-  final EndpointListBuilder<B, SocketAddress> endpointsBuilder;
+  final EndpointBuilder<B, SocketAddress> endpointsBuilder;
   String lastResourceVersion;
   boolean disposed;
   WebSocket ws;
   AtomicReference<B> endpoints = new AtomicReference<>();
 
-  KubeServiceState(EndpointListBuilder<B, SocketAddress> endpointsBuilder, KubeResolverImpl resolver, Vertx vertx, String lastResourceVersion, String name) {
+  KubeServiceState(EndpointBuilder<B, SocketAddress> endpointsBuilder, KubeResolverImpl resolver, Vertx vertx, String lastResourceVersion, String name) {
     this.endpointsBuilder = endpointsBuilder;
     this.name = name;
     this.resolver = resolver;
@@ -101,7 +100,7 @@ class KubeServiceState<B> {
     if (this.name.equals(name)) {
       JsonArray subsets = item.getJsonArray("subsets");
       if (subsets != null) {
-        EndpointListBuilder<B, SocketAddress> builder = endpointsBuilder;
+        EndpointBuilder<B, SocketAddress> builder = endpointsBuilder;
         for (int j = 0;j < subsets.size();j++) {
           List<String> podIps = new ArrayList<>();
           JsonObject subset = subsets.getJsonObject(j);
@@ -117,7 +116,7 @@ class KubeServiceState<B> {
             int podPort = port.getInteger("port");
             for (String podIp : podIps) {
               SocketAddress podAddress = SocketAddress.inetSocketAddress(podPort, podIp);
-              builder = builder.addEndpoint(podAddress, podIp + "-" + podPort);
+              builder = builder.addNode(podAddress, podIp + "-" + podPort);
             }
           }
         }
