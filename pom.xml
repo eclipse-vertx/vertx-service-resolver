@@ -13,14 +13,15 @@
   ~      http://www.opensource.org/licenses/apache2.0.php
   ~
   ~  You may elect to redistribute this code under either of these licenses.
-  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>io.vertx</groupId>
-    <artifactId>vertx-ext-parent</artifactId>
-    <version>38</version>
+    <artifactId>vertx5-parent</artifactId>
+    <version>3</version>
   </parent>
 
   <artifactId>vertx-service-resolver</artifactId>
@@ -63,8 +64,6 @@
       <artifactId>vertx-codegen</artifactId>
       <scope>provided</scope>
     </dependency>
-
-
 
     <!-- Test dependencies -->
     <dependency>
@@ -115,7 +114,41 @@
       <version>6.7.1</version>
       <scope>test</scope>
     </dependency>
-
-
   </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>default-compile</id>
+              <phase>compile</phase>
+              <configuration>
+                <annotationProcessors>
+                  <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+                  <annotationProcessor>io.vertx.docgen.JavaDocGenProcessor</annotationProcessor>
+                </annotationProcessors>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>package-docs</id>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>
