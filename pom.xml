@@ -101,6 +101,7 @@
       <groupId>com.dajudge.kindcontainer</groupId>
       <artifactId>kindcontainer</artifactId>
       <version>1.4.3</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.fabric8</groupId>
