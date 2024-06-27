@@ -14,7 +14,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.impl.VertxInternal;
+import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.net.AddressResolver;
 import io.vertx.core.net.endpoint.Endpoint;
 import io.vertx.core.net.endpoint.EndpointResolver;

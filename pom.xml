@@ -33,7 +33,7 @@
     <stack.version>5.0.0-SNAPSHOT</stack.version>
     <termd.version>1.1.6</termd.version>
     <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
-    <apacheds-protocol-dns.version>1.5.7</apacheds-protocol-dns.version>
+    <apacheds-protocol-dns.version>2.0.0-M23</apacheds-protocol-dns.version>
   </properties>
 
   <dependencyManagement>
