@@ -5,7 +5,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.net.Address;
 import io.vertx.core.net.endpoint.Endpoint;
-import io.vertx.core.net.endpoint.impl.EndpointResolverInternal;
+import io.vertx.core.internal.net.endpoint.EndpointResolverInternal;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolverClient;
 

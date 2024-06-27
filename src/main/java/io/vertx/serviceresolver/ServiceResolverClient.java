@@ -15,11 +15,11 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.internal.VertxInternal;
+import io.vertx.core.internal.net.endpoint.EndpointResolverInternal;
 import io.vertx.core.net.AddressResolver;
 import io.vertx.core.net.endpoint.Endpoint;
 import io.vertx.core.net.endpoint.EndpointResolver;
 import io.vertx.core.net.endpoint.LoadBalancer;
-import io.vertx.core.net.endpoint.impl.EndpointResolverImpl;
 import io.vertx.serviceresolver.impl.ServiceResolverClientImpl;
 import io.vertx.serviceresolver.kube.KubeResolver;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
@@ -62,7 +62,7 @@ public interface ServiceResolverClient extends EndpointResolver {
       throw new IllegalArgumentException();
     }
     io.vertx.core.spi.endpoint.EndpointResolver<ServiceAddress, ?, ?, ?> resolver = (io.vertx.core.spi.endpoint.EndpointResolver<ServiceAddress, ?, ?, ?>)addressResolver.endpointResolver(vertx);
-    EndpointResolverImpl<?, ServiceAddress, ?> r = new EndpointResolverImpl<>((VertxInternal) vertx, resolver, loadBalancer, 1000);
+    EndpointResolverInternal r = EndpointResolverInternal.create((VertxInternal) vertx, resolver, loadBalancer, 1000);
     ServiceResolverClientImpl r2 = new ServiceResolverClientImpl(vertx, r);
     r2.init();
     return r2;
