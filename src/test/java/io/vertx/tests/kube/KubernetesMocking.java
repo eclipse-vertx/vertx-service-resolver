@@ -1,4 +1,4 @@
-package io.vertx.serviceresolver.kube;
+package io.vertx.tests.kube;
 
 import com.dajudge.kindcontainer.KubernetesContainer;
 import io.fabric8.kubernetes.api.model.*;

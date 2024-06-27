@@ -1,4 +1,4 @@
-package io.vertx.serviceresolver;
+package io.vertx.tests;
 
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -7,6 +7,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.serviceresolver.ServiceAddress;
 import junit.framework.AssertionFailedError;
 import org.junit.After;
 import org.junit.Before;

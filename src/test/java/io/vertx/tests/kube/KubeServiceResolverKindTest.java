@@ -1,4 +1,4 @@
-package io.vertx.serviceresolver.kube;
+package io.vertx.tests.kube;
 
 import com.dajudge.kindcontainer.ApiServerContainer;
 import io.fabric8.kubernetes.client.Config;
@@ -11,6 +11,8 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.WebSocketClientOptions;
 import io.vertx.core.net.*;
+import io.vertx.serviceresolver.kube.KubeResolver;
+import io.vertx.serviceresolver.kube.KubeResolverOptions;
 import org.junit.Rule;
 
 import java.net.Inet4Address;

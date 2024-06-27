@@ -1,4 +1,4 @@
-package io.vertx.serviceresolver;
+package io.vertx.tests;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;

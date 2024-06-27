@@ -1,4 +1,4 @@
-package io.vertx.serviceresolver.kube;
+package io.vertx.tests.kube;
 
 public enum KubeOp {
 

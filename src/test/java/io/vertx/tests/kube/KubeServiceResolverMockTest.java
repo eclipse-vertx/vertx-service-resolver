@@ -1,11 +1,13 @@
-package io.vertx.serviceresolver.kube;
+package io.vertx.tests.kube;
 
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.vertx.core.Handler;
 import io.vertx.core.http.*;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.unit.TestContext;
-import io.vertx.serviceresolver.HttpProxy;
+import io.vertx.serviceresolver.kube.KubeResolver;
+import io.vertx.serviceresolver.kube.KubeResolverOptions;
+import io.vertx.tests.HttpProxy;
 import io.vertx.serviceresolver.ServiceAddress;
 import org.junit.Ignore;
 import org.junit.Rule;
