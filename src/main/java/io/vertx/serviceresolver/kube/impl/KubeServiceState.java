@@ -116,7 +116,7 @@ class KubeServiceState<B> {
             int podPort = port.getInteger("port");
             for (String podIp : podIps) {
               SocketAddress podAddress = SocketAddress.inetSocketAddress(podPort, podIp);
-              builder = builder.addNode(podAddress, podIp + "-" + podPort);
+              builder = builder.addServer(podAddress, podIp + "-" + podPort);
             }
           }
         }
