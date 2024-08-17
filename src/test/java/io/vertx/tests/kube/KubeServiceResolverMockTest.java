@@ -54,7 +54,7 @@ public class KubeServiceResolverMockTest extends KubeServiceResolverTestBase {
     String serviceName = "svc";
     kubernetesMocking.buildAndRegisterBackendPod(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.get(0));
     kubernetesMocking.buildAndRegisterKubernetesService(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods);
-    should.assertEquals("8080", get(ServiceAddress.create("svc")).toString());
+    should.assertEquals("8080", get(ServiceAddress.of("svc")).toString());
     assertWaitUntil(() -> proxy.webSockets().size() == 1);
     stopPods(pod -> true);
     assertWaitUntil(() -> proxy.webSockets().size() == 0);
@@ -69,13 +69,13 @@ public class KubeServiceResolverMockTest extends KubeServiceResolverTestBase {
     String serviceName = "svc";
     kubernetesMocking.buildAndRegisterBackendPod(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.get(0));
     kubernetesMocking.buildAndRegisterKubernetesService(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.subList(0, 1));
-    should.assertEquals("8080", get(ServiceAddress.create("svc")).toString());
+    should.assertEquals("8080", get(ServiceAddress.of("svc")).toString());
     assertWaitUntil(() -> proxy.webSockets().size() == 1);
     WebSocketBase ws = proxy.webSockets().iterator().next();
     ws.close();
     assertWaitUntil(() -> proxy.webSockets().size() == 1 && !proxy.webSockets().contains(ws));
     kubernetesMocking.buildAndRegisterBackendPod(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.get(1));
     kubernetesMocking.buildAndRegisterKubernetesService(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.UPDATE, pods);
-    assertWaitUntil(() -> get(ServiceAddress.create("svc")).toString().equals("8081"));
+    assertWaitUntil(() -> get(ServiceAddress.of("svc")).toString().equals("8081"));
   }
 }

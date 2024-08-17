@@ -36,7 +36,7 @@ public class ServiceResolverExamples {
     ServiceResolverClient client = ServiceResolverClient.create(vertx, new KubeResolverOptions());
 
     // Resolve a service endpoint
-    Future<Endpoint> fut = client.resolveEndpoint(ServiceAddress.create("the-service"));
+    Future<Endpoint> fut = client.resolveEndpoint(ServiceAddress.of("the-service"));
 
     fut.onSuccess(endpoint -> {
 
@@ -57,7 +57,7 @@ public class ServiceResolverExamples {
 
     // Resolve a service endpoint
     client
-      .resolveEndpoint(ServiceAddress.create("the-service"))
+      .resolveEndpoint(ServiceAddress.of("the-service"))
       .onSuccess(endpoint -> {
 
         // Let the load balancer select an endpoint endpoint node
@@ -77,7 +77,7 @@ public class ServiceResolverExamples {
   }
 
   public void usingHttpClient(HttpClient client) {
-    ServiceAddress serviceAddress = ServiceAddress.create("the-service");
+    ServiceAddress serviceAddress = ServiceAddress.of("the-service");
 
     Future<HttpClientRequest> requestFuture = client.request(new RequestOptions()
       .setMethod(HttpMethod.GET)

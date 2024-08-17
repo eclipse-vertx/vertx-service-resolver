@@ -25,14 +25,14 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     kubernetesMocking.buildAndRegisterBackendPod(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.get(1));
     kubernetesMocking.buildAndRegisterBackendPod(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.get(2));
     kubernetesMocking.buildAndRegisterKubernetesService(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods);
-    should.assertEquals("8080", get(ServiceAddress.create("svc")).toString());
+    should.assertEquals("8080", get(ServiceAddress.of("svc")).toString());
   }
 
   @Ignore
   @Test
   public void testNoPods(TestContext should) throws Exception {
     try {
-      get(ServiceAddress.create("svc"));
+      get(ServiceAddress.of("svc"));
     } catch (Exception e) {
       should.assertEquals("No addresses available for svc", e.getMessage());
     }
@@ -50,15 +50,15 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     kubernetesMocking.buildAndRegisterBackendPod(serviceName2, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.get(1));
     kubernetesMocking.buildAndRegisterKubernetesService(serviceName1, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.subList(0, 1));
     kubernetesMocking.buildAndRegisterKubernetesService(serviceName2, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.subList(1, 2));
-    should.assertEquals("8080", get(ServiceAddress.create("svc")).toString());
-    should.assertEquals("8080", get(ServiceAddress.create("svc")).toString());
+    should.assertEquals("8080", get(ServiceAddress.of("svc")).toString());
+    should.assertEquals("8080", get(ServiceAddress.of("svc")).toString());
     Thread.sleep(500); // Pause for some time to allow WebSocket to not concurrently run with updates
     kubernetesMocking.buildAndRegisterBackendPod(serviceName3, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.get(2));
     kubernetesMocking.buildAndRegisterKubernetesService(serviceName3, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.subList(2, 3));
     Thread.sleep(500); // Pause for some time to allow WebSocket to get changes
-    should.assertEquals("8080", get(ServiceAddress.create("svc")).toString());
-    should.assertEquals("8080", get(ServiceAddress.create("svc")).toString());
-    should.assertEquals("8080", get(ServiceAddress.create("svc")).toString());
+    should.assertEquals("8080", get(ServiceAddress.of("svc")).toString());
+    should.assertEquals("8080", get(ServiceAddress.of("svc")).toString());
+    should.assertEquals("8080", get(ServiceAddress.of("svc")).toString());
   }
 
   @Test
@@ -70,10 +70,10 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     String serviceName = "svc";
     kubernetesMocking.buildAndRegisterBackendPod(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.get(0));
     kubernetesMocking.buildAndRegisterKubernetesService(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.subList(0, 1));
-    should.assertEquals("8080", get(ServiceAddress.create("svc")).toString());
+    should.assertEquals("8080", get(ServiceAddress.of("svc")).toString());
     kubernetesMocking.buildAndRegisterBackendPod(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.get(1));
     kubernetesMocking.buildAndRegisterKubernetesService(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.UPDATE, pods);
-    assertWaitUntil(() -> get(ServiceAddress.create("svc")).toString().equals("8081"));
+    assertWaitUntil(() -> get(ServiceAddress.of("svc")).toString().equals("8081"));
   }
 
   @Test
@@ -86,8 +86,8 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     kubernetesMocking.buildAndRegisterBackendPod(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.get(0));
     kubernetesMocking.buildAndRegisterBackendPod(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.get(1));
     kubernetesMocking.buildAndRegisterKubernetesService(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods);
-    should.assertEquals("8080", get(ServiceAddress.create("svc")).toString());
-    should.assertEquals("8081", get(ServiceAddress.create("svc")).toString());
+    should.assertEquals("8080", get(ServiceAddress.of("svc")).toString());
+    should.assertEquals("8081", get(ServiceAddress.of("svc")).toString());
     kubernetesMocking.buildAndRegisterBackendPod(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.DELETE, pods.get(1));
     kubernetesMocking.buildAndRegisterKubernetesService(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.UPDATE, pods.subList(0, 1));
     long now = System.currentTimeMillis();
@@ -95,7 +95,7 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     while (true) {
       should.assertTrue(System.currentTimeMillis() - now < 20_000);
       for (int i = 0;i < 3;i++) {
-        if (!"8080".equals(get(ServiceAddress.create("svc")).toString())) {
+        if (!"8080".equals(get(ServiceAddress.of("svc")).toString())) {
           Thread.sleep(10);
           continue again;
         }

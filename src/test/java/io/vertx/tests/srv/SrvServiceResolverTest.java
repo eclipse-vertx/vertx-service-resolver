@@ -63,8 +63,8 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
       }
     });
     Set<String> set = new HashSet<>(Arrays.asList("8080", "8081"));
-    should.assertTrue(set.remove(get(ServiceAddress.create("_http._tcp.example.com.")).toString()));
-    should.assertTrue(set.remove(get(ServiceAddress.create("_http._tcp.example.com.")).toString()));
+    should.assertTrue(set.remove(get(ServiceAddress.of("_http._tcp.example.com.")).toString()));
+    should.assertTrue(set.remove(get(ServiceAddress.of("_http._tcp.example.com.")).toString()));
     should.assertEquals(Collections.emptySet(), set);
   }
 
@@ -99,16 +99,16 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
     ports.add(8080);
     ports.add(8081);
     Set<String> set = new HashSet<>(Arrays.asList("8080", "8081"));
-    should.assertTrue(set.remove(get(ServiceAddress.create("_http._tcp.example.com.")).toString()));
-    should.assertTrue(set.remove(get(ServiceAddress.create("_http._tcp.example.com.")).toString()));
+    should.assertTrue(set.remove(get(ServiceAddress.of("_http._tcp.example.com.")).toString()));
+    should.assertTrue(set.remove(get(ServiceAddress.of("_http._tcp.example.com.")).toString()));
     should.assertEquals(Collections.emptySet(), set);
     ports.clear();
     ports.add(8082);
     ports.add(8083);
     Thread.sleep(1500);
     set = new HashSet<>(Arrays.asList("8082", "8083"));
-    should.assertTrue(set.remove(get(ServiceAddress.create("_http._tcp.example.com.")).toString()));
-    should.assertTrue(set.remove(get(ServiceAddress.create("_http._tcp.example.com.")).toString()));
+    should.assertTrue(set.remove(get(ServiceAddress.of("_http._tcp.example.com.")).toString()));
+    should.assertTrue(set.remove(get(ServiceAddress.of("_http._tcp.example.com.")).toString()));
     should.assertEquals(Collections.emptySet(), set);
   }
 
@@ -137,7 +137,7 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
       }
     });
     ServiceResolverClient resolver = ServiceResolverClient.create(vertx, options);
-    resolver.resolveEndpoint(ServiceAddress.create("_http._tcp.example.com."))
+    resolver.resolveEndpoint(ServiceAddress.of("_http._tcp.example.com."))
       .onComplete(should.asyncAssertSuccess(res -> {
       should.assertEquals(2, res.servers().size());
       should.assertEquals(8080, res.servers().get(0).address().port());

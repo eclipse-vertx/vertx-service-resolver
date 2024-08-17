@@ -25,10 +25,11 @@ public interface ServiceAddress extends Address {
 
   /**
    * Create a service address
+   *
    * @param name the service name
-   * @return the service adddress
+   * @return the service address
    */
-  static ServiceAddress create(String name) {
+  static ServiceAddress of(String name) {
     Objects.requireNonNull(name);
     return new ServiceAddress() {
       @Override
