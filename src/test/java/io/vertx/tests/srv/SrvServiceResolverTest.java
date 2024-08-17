@@ -139,9 +139,9 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
     ServiceResolverClient resolver = ServiceResolverClient.create(vertx, options);
     resolver.resolveEndpoint(ServiceAddress.create("_http._tcp.example.com."))
       .onComplete(should.asyncAssertSuccess(res -> {
-      should.assertEquals(2, res.nodes().size());
-      should.assertEquals(8080, res.nodes().get(0).address().port());
-      should.assertEquals(8081, res.nodes().get(1).address().port());
+      should.assertEquals(2, res.servers().size());
+      should.assertEquals(8080, res.servers().get(0).address().port());
+      should.assertEquals(8081, res.servers().get(1).address().port());
     }));
   }
 }

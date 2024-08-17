@@ -49,7 +49,7 @@ class SrvServiceState<B> {
           long ttl = 10_000_000;
           EndpointBuilder<B, SrvRecord> tmp = builder;
           for (SrvRecord record : records) {
-            tmp = tmp.addNode(record, record.target() + "-" + record.port());
+            tmp = tmp.addServer(record, record.target() + "-" + record.port());
             ttl = Math.min(ttl, record.ttl());
           }
           synchronized (SrvServiceState.this) {
