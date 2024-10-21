@@ -16,7 +16,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.net.AddressResolver;
 import io.vertx.core.net.endpoint.Endpoint;
-import io.vertx.core.net.endpoint.EndpointServer;
+import io.vertx.core.net.endpoint.ServerEndpoint;
 import io.vertx.core.net.endpoint.LoadBalancer;
 import io.vertx.docgen.Source;
 import io.vertx.serviceresolver.ServiceAddress;
@@ -41,8 +41,8 @@ public class ServiceResolverExamples {
     fut.onSuccess(endpoint -> {
 
       // Print physical servers details
-      List<EndpointServer> servers = endpoint.servers();
-      for (EndpointServer server : servers) {
+      List<ServerEndpoint> servers = endpoint.servers();
+      for (ServerEndpoint server : servers) {
         System.out.println("Available server: " + server.address());
       }
     });
@@ -63,7 +63,7 @@ public class ServiceResolverExamples {
         // Let the load balancer select an endpoint endpoint node
         // by default: round robin
         for (int i = 0; i < 10; i++) {
-          EndpointServer node = endpoint.selectServer();
+          ServerEndpoint node = endpoint.selectServer();
           System.out.println("Selected node: " + node.address());
         }
       });
