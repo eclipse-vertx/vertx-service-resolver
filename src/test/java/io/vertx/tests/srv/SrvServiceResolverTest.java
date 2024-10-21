@@ -9,6 +9,7 @@ import io.vertx.tests.ServiceResolverTestBase;
 import io.vertx.test.fakedns.FakeDNSServer;
 import org.apache.directory.server.dns.messages.*;
 import org.apache.directory.server.dns.store.DnsAttribute;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.apache.directory.server.dns.store.RecordStore;
 
@@ -110,6 +111,43 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
     should.assertTrue(set.remove(get(ServiceAddress.of("_http._tcp.example.com.")).toString()));
     should.assertTrue(set.remove(get(ServiceAddress.of("_http._tcp.example.com.")).toString()));
     should.assertEquals(Collections.emptySet(), set);
+  }
+
+  @Test
+  public void testNoCaching(TestContext should) throws Exception {
+    startPods(2, req -> {
+      req.response().end("" + req.localAddress().port());
+    });
+    List<Integer> ports = Collections.synchronizedList(new ArrayList<>());
+    dnsServer.store(new RecordStore() {
+      @Override
+      public Set<ResourceRecord> getRecords(QuestionRecord questionRecord) {
+        Set<ResourceRecord> set = new HashSet<>();
+        if ("_http._tcp.example.com".equals(questionRecord.getDomainName())) {
+          for (Integer port : ports) {
+            FakeDNSServer.Record record = new FakeDNSServer.Record(
+              "_http._tcp.example.com",
+              RecordType.SRV,
+              RecordClass.IN,
+              0
+            )
+              .set(DnsAttribute.SERVICE_PRIORITY, 1)
+              .set(DnsAttribute.SERVICE_WEIGHT, 1)
+              .set(DnsAttribute.SERVICE_PORT, port)
+              .set(DnsAttribute.DOMAIN_NAME, "localhost");
+            set.add(record);
+          }
+        }
+        return set;
+      }
+    });
+    ports.add(8080);
+    should.assertEquals("8080", get(ServiceAddress.of("_http._tcp.example.com.")).toString());
+    should.assertEquals("8080", get(ServiceAddress.of("_http._tcp.example.com.")).toString());
+    ports.clear();
+    ports.add(8081);
+    should.assertEquals("8081", get(ServiceAddress.of("_http._tcp.example.com.")).toString());
+    should.assertEquals("8081", get(ServiceAddress.of("_http._tcp.example.com.")).toString());
   }
 
   @Test

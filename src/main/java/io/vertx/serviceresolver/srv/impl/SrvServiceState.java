@@ -25,16 +25,22 @@ class SrvServiceState<B> {
   private B endpoints;
   private long timerID;
   private boolean disposed;
+  private boolean valid;
 
   public SrvServiceState(SrvResolverImpl<B> resolve, EndpointBuilder<B, SrvRecord> builder, ServiceAddress address) {
     this.resolver = resolve;
     this.address = address;
     this.builder = builder;
     this.timerID = -1L;
+    this.valid = true;
   }
 
   synchronized B endpoints() {
     return endpoints;
+  }
+
+  synchronized boolean isValid() {
+    return valid;
   }
 
   Future<?> refresh() {
@@ -55,12 +61,16 @@ class SrvServiceState<B> {
           synchronized (SrvServiceState.this) {
             endpoints = tmp.build();
           }
-          timerID = resolver.vertx.setTimer(ttl * 1000, id -> {
-            synchronized (SrvServiceState.this) {
-              timerID = -1;
-            }
-            refresh();
-          });
+          if (ttl > 0) {
+            timerID = resolver.vertx.setTimer(ttl * 1000, id -> {
+              synchronized (SrvServiceState.this) {
+                timerID = -1;
+              }
+              refresh();
+            });
+          } else {
+            valid = false;
+          }
         }
       });
     }
