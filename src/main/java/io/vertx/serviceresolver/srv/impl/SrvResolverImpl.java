@@ -21,8 +21,6 @@ import io.vertx.core.spi.endpoint.EndpointResolver;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
-import java.util.List;
-
 public class SrvResolverImpl<B> implements EndpointResolver<ServiceAddress, SrvRecord, SrvServiceState<B>, B> {
 
   Vertx vertx;
@@ -32,7 +30,7 @@ public class SrvResolverImpl<B> implements EndpointResolver<ServiceAddress, SrvR
   final int minTTL;
 
   public SrvResolverImpl(Vertx vertx, SrvResolverOptions options) {
-    this.host = options.getHost();
+    this.host = options.getAddress();
     this.port = options.getPort();
     this.vertx = vertx;
     this.client = vertx.createDnsClient(port, host);

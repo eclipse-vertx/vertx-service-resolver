@@ -15,10 +15,16 @@ import io.vertx.serviceresolver.impl.ServiceAddressResolver;
 import io.vertx.serviceresolver.srv.impl.SrvResolverImpl;
 
 /**
- * DNS Srv lookup.
+ * DNS Srv resolver.
  */
 public interface SrvResolver {
 
+  /**
+   * Create an address resolver configured by the {@code options}.
+   *
+   * @param options the resolver options
+   * @return an address resolver
+   */
   static AddressResolver create(SrvResolverOptions options) {
     return new ServiceAddressResolver((vertx, lookup) -> new SrvResolverImpl(vertx, options));
   }

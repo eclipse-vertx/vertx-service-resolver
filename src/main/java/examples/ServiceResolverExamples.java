@@ -129,7 +129,7 @@ public class ServiceResolverExamples {
 
     SrvResolverOptions options = new SrvResolverOptions()
       .setPort(dnsPort)
-      .setHost(dnsServer);
+      .setAddress(dnsServer);
 
     AddressResolver resolver = SrvResolver.create(options);
 

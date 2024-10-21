@@ -10,7 +10,6 @@ import io.vertx.tests.ServiceResolverTestBase;
 import io.vertx.test.fakedns.FakeDNSServer;
 import org.apache.directory.server.dns.messages.*;
 import org.apache.directory.server.dns.store.DnsAttribute;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.apache.directory.server.dns.store.RecordStore;
 
@@ -20,7 +19,7 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
 
   private FakeDNSServer dnsServer;
   private final SrvResolverOptions options = new SrvResolverOptions()
-    .setHost(FakeDNSServer.IP_ADDRESS)
+    .setAddress(FakeDNSServer.IP_ADDRESS)
     .setPort(FakeDNSServer.PORT);
 
   public void setUp() throws Exception {

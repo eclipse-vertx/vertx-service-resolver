@@ -21,11 +21,13 @@ import java.util.concurrent.TimeUnit;
 @JsonGen(publicConverter = false)
 public class SrvResolverOptions extends ServiceResolverOptions {
 
+  public static final int DEFAULT_DNS_PORT = 53;
+  public static final String DEFAULT_DNS_SERVER = "127.0.0.1";
   public static final int MIN_TTL = 0;
   public static final TimeUnit MIN_TTL_UNIT = TimeUnit.SECONDS;
 
-  private String host;
-  private int port;
+  private String address = DEFAULT_DNS_SERVER;
+  private int port = DEFAULT_DNS_PORT;
   private int minTTL = MIN_TTL;
   private TimeUnit minTTLUnit = TimeUnit.SECONDS;
 
@@ -33,28 +35,47 @@ public class SrvResolverOptions extends ServiceResolverOptions {
   }
 
   public SrvResolverOptions(SrvResolverOptions other) {
-    this.host = other.host;
+    this.address = other.address;
     this.port = other.port;
     this.minTTL = other.minTTL;
+    this.minTTLUnit = other.minTTLUnit;
   }
 
   public SrvResolverOptions(JsonObject json) {
     SrvResolverOptionsConverter.fromJson(json, this);
   }
 
-  public String getHost() {
-    return host;
+  /**
+   * @return the DNS resolver address
+   */
+  public String getAddress() {
+    return address;
   }
 
-  public SrvResolverOptions setHost(String host) {
-    this.host = host;
+  /**
+   * Set the DNS resolver address.
+   *
+   * @param address the resolver address
+   * @return this options instance
+   */
+  public SrvResolverOptions setAddress(String address) {
+    this.address = address;
     return this;
   }
 
+  /**
+   * @return the DNS resolver port
+   */
   public int getPort() {
     return port;
   }
 
+  /**
+   * Set the DNS resolver port.
+   *
+   * @param port the resolver port
+   * @return this options instance
+   */
   public SrvResolverOptions setPort(int port) {
     this.port = port;
     return this;
