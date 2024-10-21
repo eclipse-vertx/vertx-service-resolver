@@ -1,6 +1,7 @@
 package io.vertx.tests.srv;
 
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolverClient;
@@ -19,8 +20,7 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
 
   private FakeDNSServer dnsServer;
   private final SrvResolverOptions options = new SrvResolverOptions()
-    .setAddress(FakeDNSServer.IP_ADDRESS)
-    .setPort(FakeDNSServer.PORT);
+    .setServer(SocketAddress.inetSocketAddress(FakeDNSServer.PORT, FakeDNSServer.IP_ADDRESS));
 
   public void setUp() throws Exception {
     super.setUp();

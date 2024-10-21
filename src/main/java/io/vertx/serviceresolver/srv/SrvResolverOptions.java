@@ -13,6 +13,8 @@ package io.vertx.serviceresolver.srv;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.HostAndPort;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.ServiceResolverOptions;
 
 import java.util.concurrent.TimeUnit;
@@ -21,13 +23,11 @@ import java.util.concurrent.TimeUnit;
 @JsonGen(publicConverter = false)
 public class SrvResolverOptions extends ServiceResolverOptions {
 
-  public static final int DEFAULT_DNS_PORT = 53;
-  public static final String DEFAULT_DNS_SERVER = "127.0.0.1";
+  public static final SocketAddress DEFAULT_SERVER = SocketAddress.inetSocketAddress(53, "127.0.0.1");
   public static final int MIN_TTL = 0;
   public static final TimeUnit MIN_TTL_UNIT = TimeUnit.SECONDS;
 
-  private String address = DEFAULT_DNS_SERVER;
-  private int port = DEFAULT_DNS_PORT;
+  private SocketAddress server = DEFAULT_SERVER;
   private int minTTL = MIN_TTL;
   private TimeUnit minTTLUnit = TimeUnit.SECONDS;
 
@@ -35,8 +35,7 @@ public class SrvResolverOptions extends ServiceResolverOptions {
   }
 
   public SrvResolverOptions(SrvResolverOptions other) {
-    this.address = other.address;
-    this.port = other.port;
+    this.server = other.server;
     this.minTTL = other.minTTL;
     this.minTTLUnit = other.minTTLUnit;
   }
@@ -48,36 +47,18 @@ public class SrvResolverOptions extends ServiceResolverOptions {
   /**
    * @return the DNS resolver address
    */
-  public String getAddress() {
-    return address;
+  public SocketAddress getServer() {
+    return server;
   }
 
   /**
    * Set the DNS resolver address.
    *
-   * @param address the resolver address
+   * @param server the resolver address
    * @return this options instance
    */
-  public SrvResolverOptions setAddress(String address) {
-    this.address = address;
-    return this;
-  }
-
-  /**
-   * @return the DNS resolver port
-   */
-  public int getPort() {
-    return port;
-  }
-
-  /**
-   * Set the DNS resolver port.
-   *
-   * @param port the resolver port
-   * @return this options instance
-   */
-  public SrvResolverOptions setPort(int port) {
-    this.port = port;
+  public SrvResolverOptions setServer(SocketAddress server) {
+    this.server = server;
     return this;
   }
 

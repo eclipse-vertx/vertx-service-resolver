@@ -15,6 +15,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.net.AddressResolver;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.core.net.endpoint.Endpoint;
 import io.vertx.core.net.endpoint.ServerEndpoint;
 import io.vertx.core.net.endpoint.LoadBalancer;
@@ -128,8 +129,7 @@ public class ServiceResolverExamples {
   public void configuringSRVResolver(Vertx vertx, String dnsServer, int dnsPort) {
 
     SrvResolverOptions options = new SrvResolverOptions()
-      .setPort(dnsPort)
-      .setAddress(dnsServer);
+      .setServer(SocketAddress.inetSocketAddress(dnsPort, dnsServer));
 
     AddressResolver resolver = SrvResolver.create(options);
 
