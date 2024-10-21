@@ -97,17 +97,6 @@ public abstract class ServiceResolverTestBase {
         .setServer(addr))
       .compose(req -> req.send()
         .compose(HttpClientResponse::body));
-    try {
-      return fut.toCompletionStage().toCompletableFuture().get(20, TimeUnit.SECONDS);
-    } catch (ExecutionException e) {
-      Throwable cause = e.getCause();
-      if (cause instanceof RuntimeException) {
-        throw ((RuntimeException) cause);
-      } else {
-        throw new UndeclaredThrowableException(cause, cause.getMessage());
-      }
-    } catch (TimeoutException | InterruptedException e) {
-      throw e;
-    }
+    return fut.await(20, TimeUnit.SECONDS);
   }
 }

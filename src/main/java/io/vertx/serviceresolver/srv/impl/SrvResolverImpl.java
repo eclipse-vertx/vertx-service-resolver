@@ -50,10 +50,6 @@ public class SrvResolverImpl<B> implements EndpointResolver<ServiceAddress, SrvR
       .map(state);
   }
 
-  private void resolve2(ServiceAddress address, EndpointBuilder<B, SrvRecord> builder) {
-
-  }
-
   @Override
   public B endpoint(SrvServiceState<B> data) {
     return data.endpoints();
@@ -71,7 +67,7 @@ public class SrvResolverImpl<B> implements EndpointResolver<ServiceAddress, SrvR
 
   @Override
   public boolean isValid(SrvServiceState state) {
-    return true;
+    return state.isValid();
   }
 
   @Override
