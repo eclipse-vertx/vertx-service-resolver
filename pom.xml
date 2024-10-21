@@ -21,7 +21,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx5-parent</artifactId>
-    <version>3</version>
+    <version>6</version>
   </parent>
 
   <artifactId>vertx-service-resolver</artifactId>
@@ -34,6 +34,7 @@
     <termd.version>1.1.6</termd.version>
     <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
     <apacheds-protocol-dns.version>2.0.0-M23</apacheds-protocol-dns.version>
+    <vertx.surefire.useModulePath>false</vertx.surefire.useModulePath>
   </properties>
 
   <dependencyManagement>
@@ -56,13 +57,18 @@
 
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-docgen</artifactId>
-      <scope>provided</scope>
+      <artifactId>vertx-codegen-api</artifactId>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-codegen</artifactId>
-      <scope>provided</scope>
+      <artifactId>vertx-codegen-json</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-docgen-api</artifactId>
+      <optional>true</optional>
     </dependency>
 
     <!-- Test dependencies -->
@@ -127,29 +133,21 @@
               <id>default-compile</id>
               <phase>compile</phase>
               <configuration>
-                <annotationProcessors>
-                  <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
-                  <annotationProcessor>io.vertx.docgen.JavaDocGenProcessor</annotationProcessor>
-                </annotationProcessors>
                 <annotationProcessorPaths>
                   <annotationProcessorPath>
                     <groupId>io.vertx</groupId>
                     <artifactId>vertx-codegen</artifactId>
+                    <classifier>processor</classifier>
                   </annotationProcessorPath>
                   <annotationProcessorPath>
                     <groupId>io.vertx</groupId>
-                    <artifactId>vertx-docgen</artifactId>
+                    <artifactId>vertx-docgen-processor</artifactId>
+                    <classifier>processor</classifier>
                   </annotationProcessorPath>
                 </annotationProcessorPaths>
               </configuration>
             </execution>
           </executions>
-        </plugin>
-        <plugin>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <configuration>
-            <useModulePath>false</useModulePath>
-          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -159,9 +157,6 @@
         <executions>
           <execution>
             <id>package-docs</id>
-            <goals>
-              <goal>single</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
