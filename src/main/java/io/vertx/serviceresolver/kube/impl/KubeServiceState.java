@@ -50,8 +50,7 @@ class KubeServiceState<B> {
       + "&"
       + "resourceVersion=" + lastResourceVersion;
     WebSocketConnectOptions connectOptions = new WebSocketConnectOptions();
-    connectOptions.setHost(resolver.host);
-    connectOptions.setPort(resolver.port);
+    connectOptions.setServer(resolver.server);
     connectOptions.setURI(requestURI);
     if (resolver.bearerToken != null) {
       connectOptions.putHeader(HttpHeaders.AUTHORIZATION, "Bearer " + resolver.bearerToken);

@@ -14,14 +14,9 @@ public class KubeResolverOptionsConverter {
    static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, KubeResolverOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
-        case "host":
-          if (member.getValue() instanceof String) {
-            obj.setHost((String)member.getValue());
-          }
-          break;
-        case "port":
-          if (member.getValue() instanceof Number) {
-            obj.setPort(((Number)member.getValue()).intValue());
+        case "server":
+          if (member.getValue() instanceof JsonObject) {
+            obj.setServer(io.vertx.core.net.SocketAddress.fromJson((JsonObject)member.getValue()));
           }
           break;
         case "namespace":
@@ -53,10 +48,9 @@ public class KubeResolverOptionsConverter {
   }
 
    static void toJson(KubeResolverOptions obj, java.util.Map<String, Object> json) {
-    if (obj.getHost() != null) {
-      json.put("host", obj.getHost());
+    if (obj.getServer() != null) {
+      json.put("server", obj.getServer().toJson());
     }
-    json.put("port", obj.getPort());
     if (obj.getNamespace() != null) {
       json.put("namespace", obj.getNamespace());
     }

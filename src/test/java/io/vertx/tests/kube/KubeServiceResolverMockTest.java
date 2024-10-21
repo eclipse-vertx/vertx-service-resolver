@@ -34,8 +34,7 @@ public class KubeServiceResolverMockTest extends KubeServiceResolverTestBase {
 
     KubeResolverOptions options = new KubeResolverOptions()
       .setNamespace(kubernetesMocking.defaultNamespace())
-      .setHost("localhost")
-      .setPort(1234)
+      .setServer(SocketAddress.inetSocketAddress(1234, "localhost"))
       .setHttpClientOptions(new HttpClientOptions().setSsl(true).setTrustAll(true))
       .setWebSocketClientOptions(new WebSocketClientOptions().setSsl(true).setTrustAll(true));
 

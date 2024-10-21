@@ -31,8 +31,7 @@ import static io.vertx.core.http.HttpMethod.GET;
 public class KubeResolverImpl<B> implements EndpointResolver<ServiceAddress, SocketAddress, KubeServiceState<B>, B> {
 
   final KubeResolverOptions options;
-  final String host;
-  final int port;
+  final SocketAddress server;
   Vertx vertx;
   WebSocketClient wsClient;
   HttpClient httpClient;
@@ -49,8 +48,7 @@ public class KubeResolverImpl<B> implements EndpointResolver<ServiceAddress, Soc
     this.httpClient = vertx.createHttpClient(httpClientOptions == null ? new HttpClientOptions() : httpClientOptions);
     this.options = options;
     this.namespace = options.getNamespace();
-    this.host = options.getHost();
-    this.port = options.getPort();
+    this.server = options.getServer();
     this.bearerToken = options.getBearerToken();
   }
 
@@ -62,7 +60,10 @@ public class KubeResolverImpl<B> implements EndpointResolver<ServiceAddress, Soc
   @Override
   public Future<KubeServiceState<B>> resolve(ServiceAddress address, EndpointBuilder<B, SocketAddress> builder) {
     return httpClient
-      .request(GET, port, host, "/api/v1/namespaces/" + namespace + "/endpoints")
+      .request(new RequestOptions()
+        .setMethod(GET)
+        .setServer(server)
+        .setURI("/api/v1/namespaces/" + namespace + "/endpoints"))
       .compose(req -> {
         if (bearerToken != null) {
           req.putHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken); // Todo concat that ?

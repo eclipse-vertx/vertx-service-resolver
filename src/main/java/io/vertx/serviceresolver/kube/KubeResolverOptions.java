@@ -17,6 +17,7 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.WebSocketClientOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.PemTrustOptions;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.ServiceResolverOptions;
 
 import java.io.File;
@@ -36,8 +37,7 @@ public class KubeResolverOptions extends ServiceResolverOptions {
   private static final String KUBERNETES_SERVICE_ACCOUNT_CA = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
   private static final String KUBERNETES_SERVICE_ACCOUNT_NAMESPACE = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
 
-  private static final String DEFAULT_HOST;
-  private static final Integer DEFAULT_PORT;
+  private static final SocketAddress DEFAULT_SERVER;
   private static final String DEFAULT_TOKEN;
   private static final String DEFAULT_NAMESPACE;
   private static final HttpClientOptions DEFAULT_HTTP_CLIENT_OPTIONS;
@@ -77,16 +77,14 @@ public class KubeResolverOptions extends ServiceResolverOptions {
       httpClientOptions.setTrustOptions(pemTrustOptions);
       webSocketClientOptions.setTrustOptions(pemTrustOptions);
     }
-    DEFAULT_HOST = host;
-    DEFAULT_PORT = port;
+    DEFAULT_SERVER = host != null ? SocketAddress.inetSocketAddress(port, host) : null;
     DEFAULT_TOKEN = token;
     DEFAULT_NAMESPACE = namespace;
     DEFAULT_HTTP_CLIENT_OPTIONS = httpClientOptions;
     DEFAULT_WEB_SOCKET_OPTIONS = webSocketClientOptions;
   }
 
-  private String host = DEFAULT_HOST;
-  private Integer port = DEFAULT_PORT;
+  private SocketAddress server = DEFAULT_SERVER;
   private String namespace = DEFAULT_NAMESPACE;
   private String bearerToken = DEFAULT_TOKEN;
   private HttpClientOptions httpClientOptions = new HttpClientOptions(DEFAULT_HTTP_CLIENT_OPTIONS);
@@ -96,8 +94,7 @@ public class KubeResolverOptions extends ServiceResolverOptions {
    * Constructor with default options, those might have been set from the pod environment when running in a pod.
    */
   public KubeResolverOptions() {
-    host = DEFAULT_HOST;
-    port = DEFAULT_PORT;
+    server = DEFAULT_SERVER;
     namespace = DEFAULT_NAMESPACE;
     bearerToken = DEFAULT_TOKEN;
     httpClientOptions = new HttpClientOptions(DEFAULT_HTTP_CLIENT_OPTIONS);
@@ -108,8 +105,7 @@ public class KubeResolverOptions extends ServiceResolverOptions {
    * Default constructor.
    */
   public KubeResolverOptions(KubeResolverOptions other) {
-    this.host = other.host;
-    this.port = other.port;
+    this.server = other.server;
     this.namespace = other.namespace;
     this.bearerToken = other.bearerToken;
     this.httpClientOptions = other.httpClientOptions != null ? new HttpClientOptions(other.httpClientOptions) : new HttpClientOptions();
@@ -123,21 +119,21 @@ public class KubeResolverOptions extends ServiceResolverOptions {
     KubeResolverOptionsConverter.fromJson(json, this);
   }
 
-  public String getHost() {
-    return host;
+  /**
+   * @return the Kubernetes server address
+   */
+  public SocketAddress getServer() {
+    return server;
   }
 
-  public KubeResolverOptions setHost(String host) {
-    this.host = host;
-    return this;
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  public KubeResolverOptions setPort(int port) {
-    this.port = port;
+  /**
+   * Set the Kubernetes server address
+   *
+   * @param server the address
+   * @return this options instance
+   */
+  public KubeResolverOptions setServer(SocketAddress server) {
+    this.server = server;
     return this;
   }
 

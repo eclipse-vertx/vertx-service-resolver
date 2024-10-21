@@ -62,8 +62,7 @@ public class KubeServiceResolverKindTest extends KubeServiceResolverTestBase {
       .setTrustOptions(trust);
     KubeResolverOptions options = new KubeResolverOptions()
       .setNamespace(kubernetesMocking.defaultNamespace())
-      .setHost(url.getHost())
-      .setPort(url.getPort())
+      .setServer(SocketAddress.inetSocketAddress(url.getPort(), url.getHost()))
       .setHttpClientOptions(httpClientOptions)
       .setWebSocketClientOptions(wsClientOptions);
     client = vertx.httpClientBuilder().withAddressResolver(KubeResolver.create(options)).build();

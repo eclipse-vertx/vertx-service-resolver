@@ -118,8 +118,7 @@ public class ServiceResolverExamples {
   public void configuringKubernetesResolver(String host, int port, String namespace, String bearerToken, HttpClientOptions httpClientOptions, WebSocketClientOptions wsClientOptions) {
 
     KubeResolverOptions options = new KubeResolverOptions()
-      .setPort(port)
-      .setHost(host)
+      .setServer(SocketAddress.inetSocketAddress(port, host))
       .setNamespace(namespace)
       .setBearerToken(bearerToken)
       .setHttpClientOptions(httpClientOptions)
