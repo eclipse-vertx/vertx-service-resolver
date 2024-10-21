@@ -52,7 +52,7 @@ class SrvServiceState<B> {
       return fut.andThen(ar -> {
         if (ar.succeeded()) {
           List<SrvRecord> records = ar.result();
-          long ttl = 10_000_000;
+          long ttl = Long.MAX_VALUE;
           EndpointBuilder<B, SrvRecord> tmp = builder;
           for (SrvRecord record : records) {
             tmp = tmp.addServer(record, record.target() + "-" + record.port());
@@ -61,6 +61,7 @@ class SrvServiceState<B> {
           synchronized (SrvServiceState.this) {
             endpoints = tmp.build();
           }
+          ttl = Math.max(ttl, resolver.minTTL);
           if (ttl > 0) {
             timerID = resolver.vertx.setTimer(ttl * 1000, id -> {
               synchronized (SrvServiceState.this) {

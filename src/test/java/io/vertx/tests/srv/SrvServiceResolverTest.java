@@ -1,5 +1,6 @@
 package io.vertx.tests.srv;
 
+import io.vertx.core.http.HttpClient;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolverClient;
@@ -28,7 +29,11 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
     dnsServer = new FakeDNSServer();
     dnsServer.start();
 
-    client = vertx.httpClientBuilder().withAddressResolver(SrvResolver.create(options)).build();
+    client = createHttpClient(options);
+  }
+
+  private HttpClient createHttpClient(SrvResolverOptions options) {
+    return vertx.httpClientBuilder().withAddressResolver(SrvResolver.create(options)).build();
   }
 
   public void tearDown() throws Exception {
@@ -70,7 +75,18 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
   }
 
   @Test
-  public void testExpiration(TestContext should) throws Exception {
+  public void testExpiration1(TestContext should) throws Exception {
+    testExpiration(should, 1);
+  }
+
+  @Test
+  public void testExpirationMinTTL(TestContext should) throws Exception {
+    client.close();
+    client = createHttpClient(new SrvResolverOptions(options).setMinTTL(1));
+    testExpiration(should, 0);
+  }
+
+  private void testExpiration(TestContext should, int ttl) throws Exception {
     startPods(4, req -> {
       req.response().end("" + req.localAddress().port());
     });
@@ -85,7 +101,7 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
               "_http._tcp.example.com",
               RecordType.SRV,
               RecordClass.IN,
-              1
+              ttl
             )
               .set(DnsAttribute.SERVICE_PRIORITY, 1)
               .set(DnsAttribute.SERVICE_WEIGHT, 1)

@@ -29,12 +29,14 @@ public class SrvResolverImpl<B> implements EndpointResolver<ServiceAddress, SrvR
   DnsClient client;
   final String host;
   final int port;
+  final int minTTL;
 
   public SrvResolverImpl(Vertx vertx, SrvResolverOptions options) {
     this.host = options.getHost();
     this.port = options.getPort();
     this.vertx = vertx;
     this.client = vertx.createDnsClient(port, host);
+    this.minTTL = options.getMinTTL();
   }
 
   @Override
