@@ -29,6 +29,12 @@
 
   <name>Vert.x Service Resolver</name>
 
+  <scm>
+    <connection>scm:git:git@github.com:eclipse/vertx-service-resolver.git</connection>
+    <developerConnection>scm:git:git@github.com:eclipse/vertx-service-resolver.git</developerConnection>
+    <url>git@github.com:eclipse/vertx-service-resolver.git</url>
+  </scm>
+
   <properties>
     <stack.version>5.0.0-SNAPSHOT</stack.version>
     <termd.version>1.1.6</termd.version>
