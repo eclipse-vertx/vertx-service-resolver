@@ -163,6 +163,9 @@
         <executions>
           <execution>
             <id>package-docs</id>
+            <goals>
+              <goal>single</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
