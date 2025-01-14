@@ -16,6 +16,9 @@ import org.junit.Test;
 import java.net.InetAddress;
 import java.util.*;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 public class KubeServiceResolverMockTest extends KubeServiceResolverTestBase {
 
   @Rule

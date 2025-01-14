@@ -9,7 +9,11 @@ import io.vertx.tests.ServiceResolverTestBase;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBase {
 
@@ -104,7 +108,19 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     }
   }
 
-/*
+  @Test
+  public void testEmptyPods() throws Exception {
+    String serviceName = "svc";
+    kubernetesMocking.buildAndRegisterKubernetesService(serviceName, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, Collections.emptyList());
+    try {
+      get(ServiceAddress.of("svc"));
+      fail();
+    } catch (IllegalStateException e) {
+      assertEquals("No results for svc", e.getMessage());
+    }
+  }
+
+  /*
   @Test
   public void testDispose(TestContext should) throws Exception {
     Handler<HttpServerRequest> server = req -> {
