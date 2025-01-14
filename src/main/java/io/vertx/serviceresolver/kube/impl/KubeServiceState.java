@@ -98,8 +98,8 @@ class KubeServiceState<B> {
     String name = metadata.getString("name");
     if (this.name.equals(name)) {
       JsonArray subsets = item.getJsonArray("subsets");
+      EndpointBuilder<B, SocketAddress> builder = endpointsBuilder;
       if (subsets != null) {
-        EndpointBuilder<B, SocketAddress> builder = endpointsBuilder;
         for (int j = 0;j < subsets.size();j++) {
           List<String> podIps = new ArrayList<>();
           JsonObject subset = subsets.getJsonObject(j);
@@ -119,8 +119,8 @@ class KubeServiceState<B> {
             }
           }
         }
-        this.endpoints.set(builder.build());
       }
+      this.endpoints.set(builder.build());
     }
   }
 }
