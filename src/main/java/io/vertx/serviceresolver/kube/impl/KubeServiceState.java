@@ -10,90 +10,112 @@
  */
 package io.vertx.serviceresolver.kube.impl;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.WebSocket;
-import io.vertx.core.http.WebSocketConnectOptions;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.endpoint.EndpointBuilder;
+import io.vertx.serviceresolver.ServiceAddress;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static io.vertx.core.http.HttpMethod.GET;
+
 class KubeServiceState<B> {
 
   final String name;
   final Vertx vertx;
-  final KubeResolverImpl resolver;
+  final KubeResolverImpl<B> resolver;
   final EndpointBuilder<B, SocketAddress> endpointsBuilder;
-  String lastResourceVersion;
+  final ServiceAddress address;
   boolean disposed;
   WebSocket ws;
   AtomicReference<B> endpoints = new AtomicReference<>();
+  volatile boolean valid;
 
-  KubeServiceState(EndpointBuilder<B, SocketAddress> endpointsBuilder, KubeResolverImpl resolver, Vertx vertx, String lastResourceVersion, String name) {
+  KubeServiceState(EndpointBuilder<B, SocketAddress> endpointsBuilder,
+                   KubeResolverImpl<B> resolver,
+                   ServiceAddress address,
+                   Vertx vertx,
+                   String name) {
     this.endpointsBuilder = endpointsBuilder;
     this.name = name;
     this.resolver = resolver;
     this.vertx = vertx;
-    this.lastResourceVersion = lastResourceVersion;
+    this.address = address;
+    this.valid = true;
   }
 
-  void connectWebSocket() {
+  Future<?> connect() {
+    RequestOptions options = new RequestOptions()
+      .setMethod(GET)
+      .setServer(resolver.server)
+      .setURI("/api/v1/namespaces/" + resolver.namespace + "/endpoints");
+    if (resolver.bearerToken != null) {
+      options.putHeader(HttpHeaders.AUTHORIZATION, "Bearer " + resolver.bearerToken); // Todo concat that ?
+    }
+    return resolver.httpClient
+      .request(options)
+      .compose(request -> request
+        .send()
+        .expecting(HttpResponseExpectation.SC_OK)
+        .compose(response -> response
+          .body()
+          .map(Buffer::toJsonObject)))
+      .compose(response -> {
+        String resourceVersion = response.getJsonObject("metadata").getString("resourceVersion");
+        JsonArray items = response.getJsonArray("items");
+        for (int i = 0;i < items.size();i++) {
+          JsonObject item = items.getJsonObject(i);
+          updateEndpoints(item);
+        }
+        return connectWebSocket(resourceVersion);
+      });
+  }
+
+  Future<?> connectWebSocket(String resourceVersion) {
     String requestURI = "/api/v1/namespaces/" + resolver.namespace + "/endpoints?"
       + "watch=true"
       + "&"
       + "allowWatchBookmarks=true"
       + "&"
-      + "resourceVersion=" + lastResourceVersion;
+      + "resourceVersion=" + resourceVersion;
     WebSocketConnectOptions connectOptions = new WebSocketConnectOptions();
     connectOptions.setServer(resolver.server);
     connectOptions.setURI(requestURI);
     if (resolver.bearerToken != null) {
       connectOptions.putHeader(HttpHeaders.AUTHORIZATION, "Bearer " + resolver.bearerToken);
     }
-    resolver.wsClient.webSocket()
+    return resolver.wsClient.webSocket()
       .handler(buff -> {
         JsonObject update  = buff.toJsonObject();
         handleUpdate(update);
       })
       .closeHandler(v -> {
-        if (!disposed) {
-          connectWebSocket();
-        }
-      }).connect(connectOptions).onComplete(ar -> {
-        if (ar.succeeded()) {
-          WebSocket ws = ar.result();
-          if (disposed) {
-            ws.close();
-          } else {
-            this.ws = ws;
-          }
-        } else {
-          if (!disposed) {
-            // Retry WebSocket connect
-            vertx.setTimer(500, id -> {
-              connectWebSocket();
-            });
-          }
-        }
-      });
+        valid = false;
+      }).connect(connectOptions);
   }
 
   void handleUpdate(JsonObject update) {
     String type = update.getString("type");
-    JsonObject object = update.getJsonObject("object");
-    JsonObject metadata = object.getJsonObject("metadata");
-    String resourceVersion = metadata.getString("resourceVersion");
-    if (!lastResourceVersion.equals(resourceVersion)) {
-      handleEndpoints(object);
+    switch (type) {
+      case "ADDED":
+      case "MODIFIED":
+      case "DELETED":
+        JsonObject object = update.getJsonObject("object");
+        JsonObject metadata = object.getJsonObject("metadata");
+        String resourceVersion = metadata.getString("resourceVersion");
+        updateEndpoints(object);
+        break;
     }
   }
 
-  void handleEndpoints(JsonObject item) {
+  private void updateEndpoints(JsonObject item) {
     JsonObject metadata = item.getJsonObject("metadata");
     String name = metadata.getString("name");
     if (this.name.equals(name)) {
