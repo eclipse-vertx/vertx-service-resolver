@@ -2,32 +2,42 @@ package io.vertx.tests;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
-import io.vertx.core.net.JksOptions;
+import io.vertx.core.net.KeyCertOptions;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.core.net.TrustOptions;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 
 public class HttpProxy {
 
   private final Vertx vertx;
   private HttpServer server;
   private HttpClient httpClient;
-  private WebSocketClient wsClient;
-  private SocketAddress origin;
-  private int port;
+  private WebSocketClient webSocketClient;
   private final Set<WebSocketBase> webSockets = ConcurrentHashMap.newKeySet();
+  private HttpClientOptions httpConfig = new HttpClientOptions().setTrustAll(true);
+  private WebSocketClientOptions webSocketConfig = new WebSocketClientOptions().setTrustAll(true);
+  private int port;
+  private Predicate<HttpServerRequest> requestHandler = req -> true;
 
   public HttpProxy(Vertx vertx) {
     this.vertx = vertx;
-    this.httpClient = vertx.createHttpClient();
-    this.wsClient = vertx.createWebSocketClient();
+  }
+
+  public HttpProxy requestHandler(Predicate<HttpServerRequest> requestHandler) {
+    this.requestHandler = requestHandler == null ? req -> true : requestHandler;
+    return this;
   }
 
   public HttpProxy origin(SocketAddress origin) {
-    this.origin = origin;
+    httpConfig.setDefaultPort(origin.port());
+    httpConfig.setDefaultHost(origin.host());
+    webSocketConfig.setDefaultPort(origin.port());
+    webSocketConfig.setDefaultHost(origin.host());
     return this;
   }
 
@@ -36,13 +46,33 @@ public class HttpProxy {
     return this;
   }
 
+  public HttpProxy keyCertOptions(KeyCertOptions keyCertOptions) {
+    httpConfig.setKeyCertOptions(keyCertOptions.copy());
+    webSocketConfig.setKeyCertOptions(keyCertOptions.copy());
+    return this;
+  }
+
+  public HttpProxy trustOptions(TrustOptions trustOptions) {
+    httpConfig.setTrustOptions(trustOptions.copy());
+    webSocketConfig.setTrustOptions(trustOptions.copy());
+    return this;
+  }
+
+  public HttpProxy protocol(HttpVersion version) {
+    httpConfig.setProtocolVersion(version);
+    return this;
+  }
+
+  public HttpProxy ssl(boolean ssl) {
+    httpConfig.setSsl(ssl);
+    webSocketConfig.setSsl(ssl);
+    return this;
+  }
+
   public void start() throws Exception {
-    HttpServer server = vertx.createHttpServer(new HttpServerOptions()
-      .setSsl(true)
-      .setKeyCertOptions(new JksOptions()
-        .setPath("server-keystore.jks")
-        .setPassword("wibble"))
-    );
+    this.httpClient = vertx.createHttpClient(httpConfig);
+    this.webSocketClient = vertx.createWebSocketClient(webSocketConfig);
+    server = vertx.createHttpServer();
     server.requestHandler(this::handleRequest);
     server
       .listen(port)
@@ -52,18 +82,22 @@ public class HttpProxy {
   }
 
   private void handleRequest(HttpServerRequest serverRequest) {
-    if (serverRequest.getHeader("upgrade") != null) {
+    Predicate<HttpServerRequest> handler = requestHandler;
+    if (!handler.test(serverRequest)) {
+      return;
+    }
+    if (serverRequest.canUpgradeToWebSocket()) {
       WebSocketConnectOptions options = new WebSocketConnectOptions();
-      options.setServer(origin);
       options.setURI(serverRequest.uri());
       serverRequest.pause();
-      wsClient.connect(options).onComplete(ar -> {
+      webSocketClient.connect(options).onComplete(ar -> {
         if (ar.succeeded()) {
           WebSocket wsc = ar.result();
           AtomicBoolean closed = new AtomicBoolean();
           wsc.closeHandler(v -> {
             closed.set(true);
           });
+          wsc.pause();
           serverRequest.toWebSocket().onComplete(ar2 -> {
             if (!closed.get()) {
               if (ar2.succeeded()) {
@@ -83,6 +117,7 @@ public class HttpProxy {
                   wss.close();
                 });
                 webSockets.add(wss);
+                wsc.resume();
               } else {
                 wsc.close();
               }
@@ -98,37 +133,35 @@ public class HttpProxy {
       });
     } else {
       RequestOptions options = new RequestOptions()
-        .setServer(origin)
         .setMethod(serverRequest.method())
         .setURI(serverRequest.uri());
-      serverRequest.body().onComplete(ar_ -> {
-        if (ar_.succeeded()) {
-          httpClient.request(options).onComplete(ar -> {
+      serverRequest.body().onSuccess(requestBody -> {
+        httpClient
+          .request(options)
+          .compose(clientRequest -> clientRequest
+            .send(requestBody)
+            .compose(clientResponse -> {
+              serverRequest.response().setStatusCode(clientResponse.statusCode());
+              return clientResponse.body();
+            }))
+          .onComplete(ar -> {
             if (ar.succeeded()) {
-              HttpClientRequest clientRequest = ar.result();
-              clientRequest.send(ar_.result()).onComplete(ar2 -> {
-                if (ar2.succeeded()) {
-                  HttpClientResponse clientResponse = ar2.result();
-                  HttpServerResponse serverResponse = serverRequest.response();
-                  serverResponse.putHeader(HttpHeaders.CONTENT_LENGTH, clientResponse.getHeader(HttpHeaders.CONTENT_LENGTH));
-                  clientResponse.pipeTo(serverResponse);
-                } else {
-                  serverRequest.response().setStatusCode(500).end();
-                }
-              });
+              serverRequest.response().end(ar.result());
             } else {
-              ar.cause().printStackTrace();
-              serverRequest.response().reset();
+              serverRequest.response().setStatusCode(500).end();
             }
           });
-        } else {
-          // Nothing to do ? (compose?)
-        }
       });
     }
   }
 
   public Set<WebSocketBase> webSockets() {
     return webSockets;
+  }
+
+  public void close() {
+    webSocketClient.close().await();
+    httpClient.close().await();
+    server.close().await();
   }
 }
