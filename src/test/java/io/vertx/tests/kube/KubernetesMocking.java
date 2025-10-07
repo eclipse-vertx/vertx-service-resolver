@@ -11,6 +11,7 @@ import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.serviceresolver.ServiceAddress;
 import junit.framework.AssertionFailedError;
 
 import java.net.MalformedURLException;
@@ -24,6 +25,7 @@ public class KubernetesMocking {
 
   private final KubernetesClient client;
   private final int port;
+  private final Config config;
 
   public KubernetesMocking(KubernetesServer server) {
 
@@ -39,6 +41,7 @@ public class KubernetesMocking {
 
     this.client = client;
     this.port = port;
+    this.config = client.getConfiguration();
   }
 
   public KubernetesMocking(KubernetesContainer<?> k8s) throws Exception {
@@ -71,8 +74,15 @@ public class KubernetesMocking {
       .map(sa -> sa.getMetadata().getName() + "/" + sa.getMetadata().getNamespace())
       .collect(Collectors.toList());
 
+    URL url = new URL(cfg.getMasterUrl());
+
     this.client = ((NamespacedKubernetesClient)client2).inNamespace("default");
-    this.port = -1;
+    this.port = url.getPort();
+    this.config = fromKubeconfig(k8s.getKubeconfig());
+  }
+
+  public Config config() {
+    return config;
   }
 
   public int port() {
@@ -91,6 +101,10 @@ public class KubernetesMocking {
 //    buildAndRegisterKubernetesService(serviceName, namespace, true, ips);
 //    ips.forEach(ip -> buildAndRegisterBackendPod(serviceName, namespace, true, ip));
 //  }
+
+  Endpoints buildAndRegisterKubernetesService(ServiceAddress service, String namespace, KubeOp op, List<SocketAddress> ipAdresses) {
+    return buildAndRegisterKubernetesService(service.name(), namespace, op, ipAdresses);
+  }
 
   Endpoints buildAndRegisterKubernetesService(String applicationName, String namespace, KubeOp op, List<SocketAddress> ipAdresses) {
 
@@ -143,46 +157,56 @@ public class KubernetesMocking {
     return endpointsBuilder.build();
   }
 
-  Pod buildAndRegisterBackendPod(String name, String namespace, KubeOp op, SocketAddress ip) {
+  List<Pod> buildAndRegisterBackendPod(ServiceAddress svc, String namespace, KubeOp op, List<SocketAddress> ips) {
+    return buildAndRegisterBackendPod(svc.name(), namespace, op, ips);
+  }
+
+  List<Pod> buildAndRegisterBackendPod(String name, String namespace, KubeOp op, List<SocketAddress> ips) {
 
     Map<String, String> serviceLabels = new HashMap<>();
     serviceLabels.put("app.kubernetes.io/name", name);
     serviceLabels.put("app.kubernetes.io/version", "1.0");
 
-    Map<String, String> podLabels = new HashMap<>(serviceLabels);
-    podLabels.put("ui", "ui-" + ipAsSuffix(ip));
-    Pod backendPod = new PodBuilder()
-      .withNewMetadata().withName(name + "-" + ipAsSuffix(ip))
-      .withLabels(podLabels)
-      .withNamespace(namespace)
-      .endMetadata()
-      .withNewSpec()
-      .withContainers(new ContainerBuilder()
-        .withName("frontend")
-        .withImage("clustering-kubernetes/frontend:latest")
-        .withPorts(new ContainerPortBuilder().withContainerPort(ip.port()).build())
-        .build())
-      .endSpec()
-      .build();
-    NonNamespaceOperation<Pod, PodList, PodResource> pods;
-    if (namespace != null) {
-      pods = client.pods().inNamespace(namespace);
-    } else {
-      pods = client.pods();
+    List<Pod> ret = new ArrayList<>();
+
+    for (SocketAddress ip : ips) {
+      Map<String, String> podLabels = new HashMap<>(serviceLabels);
+      podLabels.put("ui", "ui-" + ipAsSuffix(ip));
+      Pod backendPod = new PodBuilder()
+        .withNewMetadata().withName(name + "-" + ipAsSuffix(ip))
+        .withLabels(podLabels)
+        .withNamespace(namespace)
+        .endMetadata()
+        .withNewSpec()
+        .withContainers(new ContainerBuilder()
+          .withName("frontend")
+          .withImage("clustering-kubernetes/frontend:latest")
+          .withPorts(new ContainerPortBuilder().withContainerPort(ip.port()).build())
+          .build())
+        .endSpec()
+        .build();
+      NonNamespaceOperation<Pod, PodList, PodResource> existingPods;
+      if (namespace != null) {
+        existingPods = client.pods().inNamespace(namespace);
+      } else {
+        existingPods = client.pods();
+      }
+      PodResource resource = existingPods.resource(backendPod);
+      switch (op) {
+        case CREATE:
+          resource.create();
+          break;
+        case UPDATE:
+          resource.update();
+          break;
+        case DELETE:
+          resource.delete();
+          break;
+      }
+      ret.add(backendPod);
     }
-    PodResource resource = pods.resource(backendPod);
-    switch (op) {
-      case CREATE:
-        resource.create();
-        break;
-      case UPDATE:
-        resource.update();
-        break;
-      case DELETE:
-        resource.delete();
-        break;
-    }
-    return backendPod;
+
+    return ret;
   }
 
   String ipAsSuffix(SocketAddress ipAddress) {
