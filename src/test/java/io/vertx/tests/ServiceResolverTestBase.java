@@ -5,6 +5,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.net.AddressResolver;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceresolver.ServiceAddress;
@@ -13,24 +14,20 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
-import java.lang.reflect.UndeclaredThrowableException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static org.junit.Assert.fail;
 
 @RunWith(VertxUnitRunner.class)
 public abstract class ServiceResolverTestBase {
 
   protected Vertx vertx;
-  protected HttpClient client;
   protected List<HttpServer> pods;
+  protected Client client;
 
   @Before
   public void setUp() throws Exception {
@@ -40,6 +37,9 @@ public abstract class ServiceResolverTestBase {
 
   @After
   public void tearDown() throws Exception {
+    if (client != null) {
+      client.close();
+    }
     vertx.close()
       .toCompletionStage()
       .toCompletableFuture()
@@ -91,12 +91,71 @@ public abstract class ServiceResolverTestBase {
   }
 
   protected Buffer get(ServiceAddress addr) throws Exception {
+    Client c;
+    synchronized (this) {
+      c = client;
+      if (c == null) {
+        c = client();
+        this.client = c;
+      }
+    }
+    return c.get(addr);
+  }
 
-    Future<Buffer> fut = client
-      .request(new RequestOptions()
-        .setServer(addr))
-      .compose(req -> req.send()
-        .compose(HttpClientResponse::body));
-    return fut.await(20, TimeUnit.SECONDS);
+  protected Client client() {
+    return client(resolver());
+  }
+
+  protected Client client(AddressResolver<?> resolver) {
+    return new Client(resolver);
+  }
+
+  protected abstract AddressResolver<?> resolver();
+
+  protected class Client {
+
+    protected HttpClient client;
+
+    public Client(AddressResolver<?> resolver) {
+      this.client = vertx.httpClientBuilder()
+        .withAddressResolver(resolver)
+        .build();
+    }
+
+    public Buffer get(ServiceAddress addr) throws Exception {
+      Future<Buffer> fut = client
+        .request(new RequestOptions()
+          .setServer(addr))
+        .compose(req -> req.send()
+          .compose(HttpClientResponse::body));
+      return fut.await(20, TimeUnit.SECONDS);
+    }
+
+    public void close() {
+      client.close().await();
+    }
+  }
+
+  protected void checkEndpoints(ServiceAddress svc, String... values) {
+    Set<String> expected = new HashSet<>(Arrays.asList(values));
+    int retries = 5;
+    for (int r = 0;r < retries;r++) {
+      Set<String> found = new HashSet<>();
+      for (int i = 0;i < values.length * 10;i++) {
+        try {
+          found.add(get(svc).toString());
+        } catch (Exception ignore) {
+        }
+      }
+      if (found.equals(expected)) {
+        return;
+      }
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    fail();
   }
 }

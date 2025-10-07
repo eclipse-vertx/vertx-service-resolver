@@ -1,6 +1,6 @@
 package io.vertx.tests.srv;
 
-import io.vertx.core.http.HttpClient;
+import io.vertx.core.net.AddressResolver;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.serviceresolver.ServiceAddress;
@@ -19,7 +19,7 @@ import java.util.*;
 public class SrvServiceResolverTest extends ServiceResolverTestBase {
 
   private FakeDNSServer dnsServer;
-  private final SrvResolverOptions options = new SrvResolverOptions()
+  private SrvResolverOptions options = new SrvResolverOptions()
     .setServer(SocketAddress.inetSocketAddress(FakeDNSServer.PORT, FakeDNSServer.IP_ADDRESS));
 
   public void setUp() throws Exception {
@@ -27,12 +27,11 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
 
     dnsServer = new FakeDNSServer();
     dnsServer.start();
-
-    client = createHttpClient(options);
   }
 
-  private HttpClient createHttpClient(SrvResolverOptions options) {
-    return vertx.httpClientBuilder().withAddressResolver(SrvResolver.create(options)).build();
+  @Override
+  protected AddressResolver<?> resolver() {
+    return SrvResolver.create(options);
   }
 
   public void tearDown() throws Exception {
@@ -67,10 +66,7 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
         return set;
       }
     });
-    Set<String> set = new HashSet<>(Arrays.asList("8080", "8081"));
-    should.assertTrue(set.remove(get(ServiceAddress.of("_http._tcp.example.com.")).toString()));
-    should.assertTrue(set.remove(get(ServiceAddress.of("_http._tcp.example.com.")).toString()));
-    should.assertEquals(Collections.emptySet(), set);
+    checkEndpoints(ServiceAddress.of("_http._tcp.example.com."), "8080", "8081");
   }
 
   @Test
@@ -80,8 +76,7 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
 
   @Test
   public void testExpirationMinTTL(TestContext should) throws Exception {
-    client.close();
-    client = createHttpClient(new SrvResolverOptions(options).setMinTTL(1));
+    options = new SrvResolverOptions(options).setMinTTL(1);
     testExpiration(should, 0);
   }
 
