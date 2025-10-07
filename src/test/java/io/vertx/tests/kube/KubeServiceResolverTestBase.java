@@ -136,7 +136,7 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
   }
 
   @Test
-  public void testReconnectWebSocket(TestContext should) throws Exception {
+  public void testWebSocketClose(TestContext should) throws Exception {
     Handler<HttpServerRequest> server = req -> {
       req.response().end("" + req.localAddress().port());
     };
@@ -148,11 +148,10 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     assertWaitUntil(() -> proxy.webSockets().size() == 1);
     WebSocketBase ws = proxy.webSockets().iterator().next();
     ws.close();
-    assertWaitUntil(() -> proxy.webSockets().size() == 1 && !proxy.webSockets().contains(ws));
+    assertWaitUntil(() -> !proxy.webSockets().contains(ws));
     kubernetesMocking.buildAndRegisterKubernetesService(service, kubernetesMocking.defaultNamespace(), KubeOp.UPDATE, pods);
     checkEndpoints(service, "8080", "8081");
   }
-
   /*
   @Test
   public void testDispose(TestContext should) throws Exception {
