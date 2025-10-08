@@ -19,10 +19,14 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.PemTrustOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.ServiceResolverOptions;
+import io.vertx.serviceresolver.kube.impl.KubeResolverImpl;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.function.Supplier;
+
+import static io.vertx.serviceresolver.kube.impl.KubeResolverImpl.*;
 
 /**
  *
@@ -31,17 +35,11 @@ import java.nio.file.Files;
 @JsonGen(publicConverter = false)
 public class KubeResolverOptions extends ServiceResolverOptions {
 
-  private static final String KUBERNETES_SERVICE_HOST = "KUBERNETES_SERVICE_HOST";
-  private static final String KUBERNETES_SERVICE_PORT = "KUBERNETES_SERVICE_PORT";
-  private static final String KUBERNETES_SERVICE_ACCOUNT_TOKEN = "/var/run/secrets/kubernetes.io/serviceaccount/token";
-  private static final String KUBERNETES_SERVICE_ACCOUNT_CA = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
-  private static final String KUBERNETES_SERVICE_ACCOUNT_NAMESPACE = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
-
-  private static final SocketAddress DEFAULT_SERVER;
-  private static final String DEFAULT_TOKEN;
-  private static final String DEFAULT_NAMESPACE;
-  private static final HttpClientOptions DEFAULT_HTTP_CLIENT_OPTIONS;
-  private static final WebSocketClientOptions DEFAULT_WEB_SOCKET_OPTIONS;
+  public static final SocketAddress DEFAULT_SERVER;
+  public static final String DEFAULT_TOKEN;
+  public static final String DEFAULT_NAMESPACE;
+  public static final HttpClientOptions DEFAULT_HTTP_CLIENT_OPTIONS;
+  public static final WebSocketClientOptions DEFAULT_WEB_SOCKET_OPTIONS;
 
   static {
     String host = System.getenv(KUBERNETES_SERVICE_HOST);
@@ -53,14 +51,7 @@ public class KubeResolverOptions extends ServiceResolverOptions {
       } catch (NumberFormatException ignore) {
       }
     }
-    File tokenFile = new File(KUBERNETES_SERVICE_ACCOUNT_TOKEN);
-    String token = null;
-    if (tokenFile.exists()) {
-      try {
-        token = Buffer.buffer(Files.readAllBytes(tokenFile.toPath())).toString();
-      } catch (IOException ignore) {
-      }
-    }
+    String token = KubeResolverImpl.defaultToken().orElse(null);
     String namespace = "default";
     File namespaceFile = new File(KUBERNETES_SERVICE_ACCOUNT_NAMESPACE);
     if (namespaceFile.exists()) {
@@ -84,11 +75,11 @@ public class KubeResolverOptions extends ServiceResolverOptions {
     DEFAULT_WEB_SOCKET_OPTIONS = webSocketClientOptions;
   }
 
-  private SocketAddress server = DEFAULT_SERVER;
-  private String namespace = DEFAULT_NAMESPACE;
-  private String bearerToken = DEFAULT_TOKEN;
-  private HttpClientOptions httpClientOptions = new HttpClientOptions(DEFAULT_HTTP_CLIENT_OPTIONS);
-  private WebSocketClientOptions webSocketClientOptions = new WebSocketClientOptions(DEFAULT_WEB_SOCKET_OPTIONS);
+  private SocketAddress server;
+  private String namespace;
+  private String bearerToken;
+  private HttpClientOptions httpClientOptions;
+  private WebSocketClientOptions webSocketClientOptions;
 
   /**
    * Constructor with default options, those might have been set from the pod environment when running in a pod.
@@ -105,6 +96,7 @@ public class KubeResolverOptions extends ServiceResolverOptions {
    * Default constructor.
    */
   public KubeResolverOptions(KubeResolverOptions other) {
+    this();
     this.server = other.server;
     this.namespace = other.namespace;
     this.bearerToken = other.bearerToken;
@@ -116,6 +108,7 @@ public class KubeResolverOptions extends ServiceResolverOptions {
    * JSON constructor
    */
   public KubeResolverOptions(JsonObject json) {
+    this();
     KubeResolverOptionsConverter.fromJson(json, this);
   }
 
@@ -146,16 +139,31 @@ public class KubeResolverOptions extends ServiceResolverOptions {
     return this;
   }
 
+  /**
+   * @return the bearer token
+   */
   public String getBearerToken() {
     return bearerToken;
   }
 
+  /**
+   * <p>Set a bearer token presented by the resolver to the Kubernetes server.</p>
+   *
+   * <p>When a dynamic value is required (such as an ephemeral token), prefer using {@link KubeResolver#tokenProvider(Supplier)} instead.</p>
+   *
+   * <p>The bearer token value might be loaded from {@code /var/run/secrets/kubernetes.io/serviceaccount/token} when this
+   * resource exists on the file system, this token will be presented if no other token is configured. This token is subject
+   * to be reloaded if the server returns a {@code 401} response.</p>
+   *
+   * @param bearerToken the bearer token
+   * @return this object instance
+   */
   public KubeResolverOptions setBearerToken(String bearerToken) {
     this.bearerToken = bearerToken;
     return this;
   }
 
-  public HttpClientOptions getHttpClientOptions() {
+ public HttpClientOptions getHttpClientOptions() {
     return httpClientOptions;
   }
 

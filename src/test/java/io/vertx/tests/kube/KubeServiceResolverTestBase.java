@@ -15,7 +15,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static org.junit.Assert.*;
 
 public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBase {
 
@@ -133,6 +136,77 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     ServiceAddress svc = ServiceAddress.of("svc");
     kubernetesMocking.buildAndRegisterKubernetesService(svc, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, Collections.emptyList());
     checkEndpoints(svc);
+  }
+
+  @Test
+  public void testTokenProvider() throws Exception {
+    Handler<HttpServerRequest> server = req -> {
+      req.response().end("" + req.localAddress().port());
+    };
+    List<SocketAddress> pods = startPods(2, server);
+    ServiceAddress service1 = ServiceAddress.of("svc1");
+    ServiceAddress service2 = ServiceAddress.of("svc2");
+    kubernetesMocking.buildAndRegisterBackendPod(service1, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.subList(0, 1));
+    kubernetesMocking.buildAndRegisterKubernetesService(service1, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.subList(0, 1));
+    kubernetesMocking.buildAndRegisterBackendPod(service2, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.subList(1, 2));
+    kubernetesMocking.buildAndRegisterKubernetesService(service2, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.subList(1, 2));
+    AtomicInteger count = new AtomicInteger();
+    Client client = client(KubeResolver.create(options).tokenProvider(() -> "" + count.getAndIncrement()));
+    proxy.requestHandler(request -> {
+      String token = request.getHeader(HttpHeaders.AUTHORIZATION);
+      if ("Bearer 2".equals(token)) {
+        return true;
+      } else {
+        request
+          .response()
+          .setStatusCode(401)
+          .end();
+        return false;
+      }
+    });
+    Buffer res = client.get(ServiceAddress.of("svc1"));
+    assertEquals("8080", res.toString());
+    assertEquals(3, count.get());
+
+    // Check we have cached the correct token
+    res = client.get(ServiceAddress.of("svc2"));
+    assertEquals("8081", res.toString());
+    assertEquals(3, count.get());
+  }
+
+  @Test
+  public void testIncorrectToken() throws Exception {
+    Handler<HttpServerRequest> server = req -> {
+      req.response().end("" + req.localAddress().port());
+    };
+    List<SocketAddress> pods = startPods(1, server);
+    ServiceAddress service1 = ServiceAddress.of("svc1");
+    kubernetesMocking.buildAndRegisterBackendPod(service1, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.subList(0, 1));
+    kubernetesMocking.buildAndRegisterKubernetesService(service1, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods.subList(0, 1));
+    AtomicInteger count = new AtomicInteger();
+    Client client = client(KubeResolver.create(options).tokenProvider(() -> {
+      count.getAndIncrement();
+      return "fail";
+    }));
+    proxy.requestHandler(request -> {
+      String token = request.getHeader(HttpHeaders.AUTHORIZATION);
+      if ("pass".equals(token)) {
+        return true;
+      } else {
+        request
+          .response()
+          .setStatusCode(401)
+          .end();
+        return false;
+      }
+    });
+    try {
+      client.get(ServiceAddress.of("svc1"));
+      fail();
+    } catch (Exception e) {
+      assertTrue(e.getMessage().contains("401"));
+    }
+    assertEquals(2, count.get());
   }
 
   @Test
