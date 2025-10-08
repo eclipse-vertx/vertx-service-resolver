@@ -102,39 +102,55 @@ public class KubernetesMocking {
 //    ips.forEach(ip -> buildAndRegisterBackendPod(serviceName, namespace, true, ip));
 //  }
 
-  Endpoints buildAndRegisterKubernetesService(ServiceAddress service, String namespace, KubeOp op, List<SocketAddress> ipAdresses) {
-    return buildAndRegisterKubernetesService(service.name(), namespace, op, ipAdresses);
+  Endpoints buildAndRegisterKubernetesService(ServiceAddress service, String namespace, KubeOp op, List<SocketAddress> ipAddresses) {
+    return buildAndRegisterKubernetesService(service.name(), namespace, op, ipAddresses);
   }
 
-  Endpoints buildAndRegisterKubernetesService(String applicationName, String namespace, KubeOp op, List<SocketAddress> ipAdresses) {
+  Endpoints buildAndRegisterKubernetesService(String applicationName,
+                                              String namespace,
+                                              KubeOp op,
+                                              List<SocketAddress> ipAddresses) {
+    return buildAndRegisterKubernetesService(
+      applicationName,
+      namespace,
+      op,
+      ipAddresses
+        .stream()
+        .map(ipAddress -> new KubeEndpoint(ipAddress.host(), ipAddress.port()))
+        .collect(Collectors.toList())
+        .toArray(KubeEndpoint[]::new)
+    );
+  }
 
+  Endpoints buildAndRegisterKubernetesService(String applicationName,
+                                              String namespace,
+                                              KubeOp op,
+                                              KubeEndpoint... endpoints_) {
     Map<String, String> serviceLabels = new HashMap<>();
     serviceLabels.put("app.kubernetes.io/name", applicationName);
     serviceLabels.put("app.kubernetes.io/version", "1.0");
 
-    Map<Integer, List<EndpointAddress>> endpointAddressesMap = new LinkedHashMap<>();
-    for (SocketAddress sa : ipAdresses) {
-      List<EndpointAddress> endpointAddresses = endpointAddressesMap.compute(sa.port(), (integer, addresses) -> {
-        if (addresses == null) {
-          addresses = new ArrayList<>();
-        }
-        return addresses;
-      });
-      ObjectReference targetRef = new ObjectReference(null, null, "Pod",
-        applicationName + "-" + ipAsSuffix(sa), namespace, null, UUID.randomUUID().toString());
-      EndpointAddress endpointAddress = new EndpointAddressBuilder().withIp(sa.host()).withTargetRef(targetRef)
-        .build();
-      endpointAddresses.add(endpointAddress);
-    }
-
     EndpointsBuilder endpointsBuilder = new EndpointsBuilder()
       .withNewMetadata().withName(applicationName).withLabels(serviceLabels).endMetadata();
 
-    endpointAddressesMap.forEach((port, addresses) -> {
-      endpointsBuilder.addToSubsets(new EndpointSubsetBuilder().withAddresses(addresses)
-        .addToPorts(new EndpointPort[] { new EndpointPortBuilder().withPort(port).withProtocol("TCP").build() })
-        .build());
-    });
+    for (KubeEndpoint endpoint : endpoints_) {
+      EndpointSubsetBuilder builder = new EndpointSubsetBuilder();
+      StringBuilder sb = new StringBuilder(applicationName)
+        .append('-')
+        .append(endpoint.ip.replace(".", ""));
+      endpoint.ports.forEach((port, name) -> {
+        sb.append('-').append(port);
+        EndpointPortBuilder portBuilder = new EndpointPortBuilder().withPort(port).withProtocol("TCP");
+        if (name != null && !name.isEmpty()) {
+          portBuilder.withName(name);
+        }
+        builder.addToPorts(portBuilder.build());
+      });
+      ObjectReference targetRef = new ObjectReference(null, null, "Pod",
+        sb.toString(), namespace, null, UUID.randomUUID().toString());
+      builder.withAddresses(new EndpointAddressBuilder().withIp(endpoint.ip).withTargetRef(targetRef).build());
+      endpointsBuilder.addToSubsets(builder.build());
+    }
 
     NonNamespaceOperation<Endpoints, EndpointsList, Resource<Endpoints>> endpoints;
     if (namespace != null) {

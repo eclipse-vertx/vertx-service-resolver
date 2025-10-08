@@ -138,6 +138,24 @@ You can deal with ephemeral tokens using the {@link io.vertx.serviceresolver.kub
 The resolver calls the provider when it needs a fresh token. The token is cached by the resolver until it is detetected
 stale by the resolver (upon a `401` server response code).
 
+==== Matching specific service ports
+
+When a service exposes more than one port, the resolver retains only a single port, it might not be the expected port.
+
+You can build a specific service address for a given service port number.
+
+[source,java]
+----
+{@link examples.ServiceResolverExamples#servicePortNumberMatching}
+----
+
+Or a given service port name.
+
+[source,java]
+----
+{@link examples.ServiceResolverExamples#servicePortNameMatching}
+----
+
 === SRV resolver
 
 The SRV resolver uses DNS SRV records to resolve and locate services.

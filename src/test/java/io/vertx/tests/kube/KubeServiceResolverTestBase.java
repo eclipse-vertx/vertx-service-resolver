@@ -9,6 +9,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.kube.KubeResolver;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
+import io.vertx.serviceresolver.kube.KubernetesServiceAddressBuilder;
 import io.vertx.tests.HttpProxy;
 import io.vertx.tests.ServiceResolverTestBase;
 import org.junit.Ignore;
@@ -93,6 +94,22 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     } catch (Exception e) {
       should.assertEquals("No addresses available for svc", e.getMessage());
     }
+  }
+
+  @Test
+  public void testSome(TestContext should) throws Exception {
+    Handler<HttpServerRequest> server = req -> {
+      req.response().end("" + req.localAddress().port());
+    };
+    List<SocketAddress> pods = startPods(2, server);
+    ServiceAddress service = ServiceAddress.of("svc");
+    kubernetesMocking.buildAndRegisterBackendPod(service, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, pods);
+    KubeEndpoint kubeEndpoint = new KubeEndpoint(pods.get(0).host(), Map.of(pods.get(0).port(), "p1", pods.get(1).port(), "p2"));
+    kubernetesMocking.buildAndRegisterKubernetesService(service.name(), kubernetesMocking.defaultNamespace(), KubeOp.CREATE, kubeEndpoint);
+    should.assertEquals("8080", get(KubernetesServiceAddressBuilder.of("svc").withPortName("p1").build()).toString());
+    should.assertEquals("8081", get(KubernetesServiceAddressBuilder.of("svc").withPortName("p2").build()).toString());
+    should.assertEquals("8080", get(KubernetesServiceAddressBuilder.of("svc").withPortNumber(8080).build()).toString());
+    should.assertEquals("8081", get(KubernetesServiceAddressBuilder.of("svc").withPortNumber(8081).build()).toString());
   }
 
   @Test

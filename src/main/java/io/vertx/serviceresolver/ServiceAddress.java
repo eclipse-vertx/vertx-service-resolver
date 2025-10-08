@@ -29,7 +29,7 @@ public interface ServiceAddress extends Address {
    * @param name the service name
    * @return the service address
    */
-  static ServiceAddress of(String name) {
+  public static ServiceAddress of(String name) {
     Objects.requireNonNull(name);
     return new ServiceAddress() {
       @Override
