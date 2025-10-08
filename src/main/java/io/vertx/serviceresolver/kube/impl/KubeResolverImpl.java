@@ -144,7 +144,7 @@ public class KubeResolverImpl<B> implements EndpointResolver<ServiceAddress, Soc
     Future<EndpoinsRequest<JsonObject>> endpointsFuture = requestEndpoints(token, 0);
     return endpointsFuture
       .compose(endpointsRequest -> {
-        KubeServiceState<B> state = new KubeServiceState<>(builder, address.name());
+        KubeServiceState<B> state = new KubeServiceState<>(builder, address, address.name());
         JsonObject response = endpointsRequest.payload;
         String resourceVersion = response.getJsonObject("metadata").getString("resourceVersion");
         JsonArray items = response.getJsonArray("items");
