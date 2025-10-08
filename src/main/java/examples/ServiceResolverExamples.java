@@ -24,6 +24,8 @@ import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolverClient;
 import io.vertx.serviceresolver.kube.KubeResolver;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
+import io.vertx.serviceresolver.kube.KubernetesServiceAddressBuilder;
+import io.vertx.serviceresolver.kube.impl.KubernetesServiceAddress;
 import io.vertx.serviceresolver.srv.SrvResolver;
 import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
@@ -140,6 +142,20 @@ public class ServiceResolverExamples {
       .setBearerToken(bearerToken)
       .setHttpClientOptions(httpClientOptions)
       .setWebSocketClientOptions(wsClientOptions);
+  }
+
+  public void servicePortNumberMatching() {
+    ServiceAddress serviceAddress = KubernetesServiceAddressBuilder
+      .of("the-service")
+      .withPortNumber(8080)
+      .build();
+  }
+
+  public void servicePortNameMatching(String portName) {
+    ServiceAddress serviceAddress = KubernetesServiceAddressBuilder
+      .of("the-service")
+      .withPortName(portName)
+      .build();
   }
 
   public void configuringSRVResolver(Vertx vertx, String dnsServer, int dnsPort) {
