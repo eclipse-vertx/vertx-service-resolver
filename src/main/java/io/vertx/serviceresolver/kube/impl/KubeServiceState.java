@@ -15,6 +15,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.spi.endpoint.EndpointBuilder;
+import io.vertx.serviceresolver.ServiceAddress;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 class KubeServiceState<B> {
 
+  final ServiceAddress address;
   final String name;
   final EndpointBuilder<B, SocketAddress> endpointsBuilder;
   boolean disposed;
@@ -29,9 +31,10 @@ class KubeServiceState<B> {
   AtomicReference<B> endpoints = new AtomicReference<>();
   volatile boolean valid;
 
-  KubeServiceState(EndpointBuilder<B, SocketAddress> endpointsBuilder, String name) {
+  KubeServiceState(EndpointBuilder<B, SocketAddress> endpointsBuilder, ServiceAddress address, String name) {
     this.endpointsBuilder = endpointsBuilder;
     this.name = name;
+    this.address = address;
     this.valid = true;
   }
 
@@ -68,11 +71,22 @@ class KubeServiceState<B> {
           }
           for (int k = 0;k < ports.size();k++) {
             JsonObject port = ports.getJsonObject(k);
-            int podPort = port.getInteger("port");
-            for (String podIp : podIps) {
-              SocketAddress podAddress = SocketAddress.inetSocketAddress(podPort, podIp);
-              builder = builder.addServer(podAddress, podIp + "-" + podPort);
+            int portNumber = port.getInteger("port");
+            String portName = port.getString("name");
+            if (address instanceof KubernetesServiceAddress) {
+              KubernetesServiceAddress kubernetesAddress = (KubernetesServiceAddress) address;
+              if (kubernetesAddress.portNumber > 0 && kubernetesAddress.portNumber != portNumber) {
+                continue;
+              }
+              if (kubernetesAddress.portName != null && !kubernetesAddress.portName.equals(portName)) {
+                continue;
+              }
             }
+            for (String podIp : podIps) {
+              SocketAddress podAddress = SocketAddress.inetSocketAddress(portNumber, podIp);
+              builder = builder.addServer(podAddress, podIp + "-" + port);
+            }
+            break;
           }
         }
       }

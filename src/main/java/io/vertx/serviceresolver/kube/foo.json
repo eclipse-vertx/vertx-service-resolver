@@ -1,0 +1,51 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Endpoints",
+      "metadata": {
+        "creationTimestamp": "2025-10-08T14:31:20.049213Z",
+        "generation": 1,
+        "labels": {
+          "app.kubernetes.io/name": "svc",
+          "app.kubernetes.io/version": "1.0"
+        },
+        "name": "svc",
+        "namespace": "test",
+        "resourceVersion": "3",
+        "uid": "f28931fe-942d-4391-90c9-31a4e03971da"
+      },
+      "subsets": [
+        {
+          "addresses": [
+            {
+              "ip": "0.0.0.0",
+              "targetRef": {
+                "kind": "Pod",
+                "name": "svc-0000-8080-8081",
+                "namespace": "test",
+                "uid": "5566d0e7-996b-43d8-b8d9-5950fa5ffc34"
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 8080,
+              "protocol": "TCP"
+            },
+            {
+              "port": 8081,
+              "protocol": "TCP"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "resourceVersion": "3",
+    "selfLink": ""
+  }
+}
