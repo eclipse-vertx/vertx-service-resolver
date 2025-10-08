@@ -11,20 +11,22 @@
 package io.vertx.serviceresolver.kube;
 
 import io.vertx.core.net.AddressResolver;
-import io.vertx.serviceresolver.impl.ServiceAddressResolver;
-import io.vertx.serviceresolver.kube.impl.KubeResolverImpl;
+import io.vertx.serviceresolver.ServiceAddress;
+import io.vertx.serviceresolver.kube.impl.KubeAddressResolver;
+
+import java.util.function.Supplier;
 
 /**
  * A resolver for services within a Kubernetes cluster.
  */
-public interface KubeResolver {
+public interface KubeResolver extends AddressResolver<ServiceAddress> {
 
   /**
    * Create a Kubernetes resolver with the default options.
    *
    * @return the resolver
    */
-  static AddressResolver create() {
+  static KubeResolver create() {
     return create(new KubeResolverOptions());
   }
 
@@ -33,7 +35,17 @@ public interface KubeResolver {
    *
    * @return the resolver
    */
-  static AddressResolver create(KubeResolverOptions options) {
-    return new ServiceAddressResolver((vertx, lookup) -> new KubeResolverImpl(vertx, options));
+  static KubeResolver create(KubeResolverOptions options) {
+    return new KubeAddressResolver(options);
   }
+
+  /**
+   * Set a token provider for the resolver: the {@code tokenProvider} supplier is called when the resolver
+   * needs a token or retries when the server responses with a {@code 401} code.
+   *
+   * @param tokenProvider the token provider called when a bearer token is needed
+   * @return this instance
+   */
+  KubeResolver tokenProvider(Supplier<String> tokenProvider);
+
 }
