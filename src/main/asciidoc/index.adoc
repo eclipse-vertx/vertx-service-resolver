@@ -128,10 +128,15 @@ The default resolver options values are loaded from the pod environment
 
 You can override these settings.
 
+You can deal with ephemeral tokens using the {@link io.vertx.serviceresolver.kube.KubeResolver#tokenProvider}.
+
 [source,java]
 ----
-{@link examples.ServiceResolverExamples#configuringKubernetesResolver}
+{@link examples.ServiceResolverExamples#usingKubernetesTokenProvider}
 ----
+
+The resolver calls the provider when it needs a fresh token. The token is cached by the resolver until it is detetected
+stale by the resolver (upon a `401` server response code).
 
 === SRV resolver
 

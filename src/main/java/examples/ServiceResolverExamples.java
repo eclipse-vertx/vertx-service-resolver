@@ -28,6 +28,7 @@ import io.vertx.serviceresolver.srv.SrvResolver;
 import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 @Source
 public class ServiceResolverExamples {
@@ -108,7 +109,23 @@ public class ServiceResolverExamples {
 
     KubeResolverOptions options = new KubeResolverOptions();
 
-    AddressResolver resolver = KubeResolver.create(options);
+    KubeResolver resolver = KubeResolver.create(options);
+
+    HttpClient client = vertx.httpClientBuilder()
+      .withAddressResolver(resolver)
+      .build();
+  }
+
+  private static String loadToken() {
+    return "the-token";
+  }
+
+  public void usingKubernetesTokenProvider(Vertx vertx) {
+
+    KubeResolverOptions options = new KubeResolverOptions();
+
+    KubeResolver resolver = KubeResolver.create(options)
+      .tokenProvider(() -> loadToken());
 
     HttpClient client = vertx.httpClientBuilder()
       .withAddressResolver(resolver)
