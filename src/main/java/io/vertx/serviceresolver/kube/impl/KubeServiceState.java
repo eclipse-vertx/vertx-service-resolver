@@ -64,10 +64,14 @@ class KubeServiceState<B> {
           JsonObject subset = subsets.getJsonObject(j);
           JsonArray addresses = subset.getJsonArray("addresses");
           JsonArray ports = subset.getJsonArray("ports");
-          for (int k = 0;k < addresses.size();k++) {
-            JsonObject address = addresses.getJsonObject(k);
-            String ip = address.getString("ip");
-            podIps.add(ip);
+          // Addresses array can be null when service pods are getting ready slowly
+          // and are first added to notReadyAddresses array.
+          if (addresses != null) {
+            for (int k = 0;k < addresses.size();k++) {
+              JsonObject address = addresses.getJsonObject(k);
+              String ip = address.getString("ip");
+              podIps.add(ip);
+            }
           }
           for (int k = 0;k < ports.size();k++) {
             JsonObject port = ports.getJsonObject(k);
