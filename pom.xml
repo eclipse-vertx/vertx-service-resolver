@@ -37,7 +37,6 @@
   <properties>
     <termd.version>1.1.6</termd.version>
     <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
-    <apacheds-protocol-dns.version>2.0.0-M23</apacheds-protocol-dns.version>
     <vertx.surefire.useModulePath>false</vertx.surefire.useModulePath>
   </properties>
 
@@ -89,18 +88,6 @@
       <version>${project.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.directory.server</groupId>
-      <artifactId>apacheds-protocol-dns</artifactId>
-      <version>${apacheds-protocol-dns.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>bouncycastle</groupId>
-          <artifactId>bcprov-jdk15</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
