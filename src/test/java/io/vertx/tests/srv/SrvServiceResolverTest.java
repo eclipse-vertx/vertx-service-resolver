@@ -1,5 +1,6 @@
 package io.vertx.tests.srv;
 
+import io.netty.handler.codec.dns.DnsRecord;
 import io.vertx.core.net.AddressResolver;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.unit.TestContext;
@@ -7,25 +8,22 @@ import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.ServiceResolverClient;
 import io.vertx.serviceresolver.srv.SrvResolver;
 import io.vertx.serviceresolver.srv.SrvResolverOptions;
+import io.vertx.test.fakedns.MockDnsServer;
 import io.vertx.tests.ServiceResolverTestBase;
-import io.vertx.test.fakedns.FakeDNSServer;
-import org.apache.directory.server.dns.messages.*;
-import org.apache.directory.server.dns.store.DnsAttribute;
 import org.junit.Test;
-import org.apache.directory.server.dns.store.RecordStore;
 
 import java.util.*;
 
 public class SrvServiceResolverTest extends ServiceResolverTestBase {
 
-  private FakeDNSServer dnsServer;
+  private MockDnsServer dnsServer;
   private SrvResolverOptions options = new SrvResolverOptions()
-    .setServer(SocketAddress.inetSocketAddress(FakeDNSServer.PORT, FakeDNSServer.IP_ADDRESS));
+    .setServer(SocketAddress.inetSocketAddress(MockDnsServer.PORT, MockDnsServer.IP_ADDRESS));
 
   public void setUp() throws Exception {
     super.setUp();
 
-    dnsServer = new FakeDNSServer();
+    dnsServer = new MockDnsServer();
     dnsServer.start();
   }
 
@@ -44,27 +42,15 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
     startPods(2, req -> {
       req.response().end("" + req.localAddress().port());
     });
-    dnsServer.store(new RecordStore() {
-      @Override
-      public Set<ResourceRecord> getRecords(QuestionRecord questionRecord) {
-        Set<ResourceRecord> set = new HashSet<>();
-        if ("_http._tcp.example.com".equals(questionRecord.getDomainName())) {
-          for (int i = 0;i < 2;i++) {
-            FakeDNSServer.Record record = new FakeDNSServer.Record(
-              "_http._tcp.example.com",
-              RecordType.SRV,
-              RecordClass.IN,
-              100
-            )
-              .set(DnsAttribute.SERVICE_PRIORITY, 1)
-              .set(DnsAttribute.SERVICE_WEIGHT, 1)
-              .set(DnsAttribute.SERVICE_PORT, 8080 + i)
-              .set(DnsAttribute.DOMAIN_NAME, "localhost");
-            set.add(record);
-          }
+
+    dnsServer.store(questionRecord -> {
+      List<DnsRecord> set = new LinkedList<>();
+      if ("_http._tcp.example.com.".equals(questionRecord.name())) {
+        for (int i = 0; i < 2; i++) {
+          set.add(MockDnsServer.srv("_http._tcp.example.com.", 1000, 1, 1, 8080 + i, "localhost"));
         }
-        return set;
       }
+      return set;
     });
     checkEndpoints(ServiceAddress.of("_http._tcp.example.com."), "8080", "8081");
   }
@@ -85,27 +71,15 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
       req.response().end("" + req.localAddress().port());
     });
     List<Integer> ports = Collections.synchronizedList(new ArrayList<>());
-    dnsServer.store(new RecordStore() {
-      @Override
-      public Set<ResourceRecord> getRecords(QuestionRecord questionRecord) {
-        Set<ResourceRecord> set = new HashSet<>();
-        if ("_http._tcp.example.com".equals(questionRecord.getDomainName())) {
-          for (Integer port : ports) {
-            FakeDNSServer.Record record = new FakeDNSServer.Record(
-              "_http._tcp.example.com",
-              RecordType.SRV,
-              RecordClass.IN,
-              ttl
-            )
-              .set(DnsAttribute.SERVICE_PRIORITY, 1)
-              .set(DnsAttribute.SERVICE_WEIGHT, 1)
-              .set(DnsAttribute.SERVICE_PORT, port)
-              .set(DnsAttribute.DOMAIN_NAME, "localhost");
-            set.add(record);
-          }
+
+    dnsServer.store(questionRecord -> {
+      List<DnsRecord> set = new LinkedList<>();
+      if ("_http._tcp.example.com.".equals(questionRecord.name())) {
+        for (Integer port : ports) {
+          set.add(MockDnsServer.srv("_http._tcp.example.com.", ttl, 1, 1, port, "localhost"));
         }
-        return set;
       }
+      return set;
     });
     ports.add(8080);
     ports.add(8081);
@@ -129,27 +103,15 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
       req.response().end("" + req.localAddress().port());
     });
     List<Integer> ports = Collections.synchronizedList(new ArrayList<>());
-    dnsServer.store(new RecordStore() {
-      @Override
-      public Set<ResourceRecord> getRecords(QuestionRecord questionRecord) {
-        Set<ResourceRecord> set = new HashSet<>();
-        if ("_http._tcp.example.com".equals(questionRecord.getDomainName())) {
-          for (Integer port : ports) {
-            FakeDNSServer.Record record = new FakeDNSServer.Record(
-              "_http._tcp.example.com",
-              RecordType.SRV,
-              RecordClass.IN,
-              0
-            )
-              .set(DnsAttribute.SERVICE_PRIORITY, 1)
-              .set(DnsAttribute.SERVICE_WEIGHT, 1)
-              .set(DnsAttribute.SERVICE_PORT, port)
-              .set(DnsAttribute.DOMAIN_NAME, "localhost");
-            set.add(record);
-          }
+
+    dnsServer.store(questionRecord -> {
+      List<DnsRecord> set = new LinkedList<>();
+      if ("_http._tcp.example.com.".equals(questionRecord.name())) {
+        for (Integer port : ports) {
+          set.add(MockDnsServer.srv("_http._tcp.example.com.", 0, 1, 1, port, "localhost"));
         }
-        return set;
       }
+      return set;
     });
     ports.add(8080);
     should.assertEquals("8080", get(ServiceAddress.of("_http._tcp.example.com.")).toString());
@@ -161,35 +123,22 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
   }
 
   @Test
-  public void testServiceResolver(TestContext should) throws Exception {
-    dnsServer.store(new RecordStore() {
-      @Override
-      public Set<ResourceRecord> getRecords(QuestionRecord questionRecord) {
-        Set<ResourceRecord> set = new HashSet<>();
-        if ("_http._tcp.example.com".equals(questionRecord.getDomainName())) {
-          for (int i = 0;i < 2;i++) {
-            FakeDNSServer.Record record = new FakeDNSServer.Record(
-              "_http._tcp.example.com",
-              RecordType.SRV,
-              RecordClass.IN,
-              100
-            )
-              .set(DnsAttribute.SERVICE_PRIORITY, 1)
-              .set(DnsAttribute.SERVICE_WEIGHT, 1)
-              .set(DnsAttribute.SERVICE_PORT, 8080 + i)
-              .set(DnsAttribute.DOMAIN_NAME, "localhost");
-            set.add(record);
-          }
+  public void testServiceResolver(TestContext should) {
+    dnsServer.store(questionRecord -> {
+      List<DnsRecord> set = new LinkedList<>();
+      if ("_http._tcp.example.com.".equals(questionRecord.name())) {
+        for (int i = 0; i < 2; i++) {
+          set.add(MockDnsServer.srv("_http._tcp.example.com.", 100, 1, 1, 8080 + i, "localhost"));
         }
-        return set;
       }
+      return set;
     });
     ServiceResolverClient resolver = ServiceResolverClient.create(vertx, options);
     resolver.resolveEndpoint(ServiceAddress.of("_http._tcp.example.com."))
       .onComplete(should.asyncAssertSuccess(res -> {
-      should.assertEquals(2, res.servers().size());
-      should.assertEquals(8080, res.servers().get(0).address().port());
-      should.assertEquals(8081, res.servers().get(1).address().port());
-    }));
+        should.assertEquals(2, res.servers().size());
+        should.assertEquals(8080, res.servers().get(0).address().port());
+        should.assertEquals(8081, res.servers().get(1).address().port());
+      }));
   }
 }
