@@ -23,7 +23,7 @@ public class SrvServiceResolverTest extends ServiceResolverTestBase {
   public void setUp() throws Exception {
     super.setUp();
 
-    dnsServer = new MockDnsServer();
+    dnsServer = new MockDnsServer(vertx);
     dnsServer.start();
   }
 
