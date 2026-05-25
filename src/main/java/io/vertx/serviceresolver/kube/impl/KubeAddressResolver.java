@@ -11,7 +11,6 @@
 package io.vertx.serviceresolver.kube.impl;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.net.AddressResolver;
 import io.vertx.core.spi.endpoint.EndpointResolver;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.kube.KubeResolver;

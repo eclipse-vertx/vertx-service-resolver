@@ -25,12 +25,10 @@ import io.vertx.serviceresolver.ServiceResolverClient;
 import io.vertx.serviceresolver.kube.KubeResolver;
 import io.vertx.serviceresolver.kube.KubeResolverOptions;
 import io.vertx.serviceresolver.kube.KubernetesServiceAddressBuilder;
-import io.vertx.serviceresolver.kube.impl.KubernetesServiceAddress;
 import io.vertx.serviceresolver.srv.SrvResolver;
 import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 @Source
 public class ServiceResolverExamples {

@@ -13,7 +13,6 @@ package io.vertx.serviceresolver.srv;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.HostAndPort;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.serviceresolver.ServiceResolverOptions;
 
