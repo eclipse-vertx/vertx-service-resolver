@@ -26,6 +26,8 @@ import io.vertx.serviceresolver.kube.KubeResolverOptions;
 import io.vertx.serviceresolver.srv.SrvResolver;
 import io.vertx.serviceresolver.srv.SrvResolverOptions;
 
+import java.time.Duration;
+
 /**
  * Address lookup implementing service discovery and load balancing.
  */
@@ -62,7 +64,7 @@ public interface ServiceResolverClient extends EndpointResolver {
       throw new IllegalArgumentException();
     }
     io.vertx.core.spi.endpoint.EndpointResolver<ServiceAddress, ?, ?, ?> resolver = (io.vertx.core.spi.endpoint.EndpointResolver<ServiceAddress, ?, ?, ?>)addressResolver.endpointResolver(vertx);
-    EndpointResolverInternal r = EndpointResolverInternal.create((VertxInternal) vertx, resolver, loadBalancer, 1000);
+    EndpointResolverInternal r = EndpointResolverInternal.create((VertxInternal) vertx, resolver, loadBalancer, Duration.ofSeconds(30), Duration.ofSeconds(60));
     ServiceResolverClientImpl r2 = new ServiceResolverClientImpl(vertx, r);
     r2.init();
     return r2;
