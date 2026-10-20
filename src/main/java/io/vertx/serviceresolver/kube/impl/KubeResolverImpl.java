@@ -179,7 +179,12 @@ public class KubeResolverImpl<B> implements EndpointResolver<ServiceAddress, Soc
       })
       .closeHandler(v -> {
         state.valid = false;
-      }).connect(connectOptions);
+      }).connect(connectOptions)
+      .andThen(ar -> {
+        if (ar.succeeded()) {
+          state.webSocket = ar.result();
+        }
+      });
   }
 
   @Override

@@ -5,6 +5,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.net.*;
+import io.vertx.core.spi.endpoint.EndpointBuilder;
+import io.vertx.core.spi.endpoint.EndpointResolver;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.serviceresolver.ServiceAddress;
 import io.vertx.serviceresolver.kube.KubeResolver;
@@ -16,6 +18,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -243,6 +246,33 @@ public abstract class KubeServiceResolverTestBase extends ServiceResolverTestBas
     kubernetesMocking.buildAndRegisterKubernetesService(service, kubernetesMocking.defaultNamespace(), KubeOp.UPDATE, pods);
     checkEndpoints(service, "8080", "8081");
   }
+  @Test
+  public void testDisposeClosesWebSocket() throws Exception {
+    ServiceAddress service = ServiceAddress.of("svc");
+    kubernetesMocking.buildAndRegisterKubernetesService(service, kubernetesMocking.defaultNamespace(), KubeOp.CREATE, Collections.emptyList());
+    EndpointResolver<ServiceAddress, SocketAddress, Object, List<SocketAddress>> resolver =
+      (EndpointResolver<ServiceAddress, SocketAddress, Object, List<SocketAddress>>) KubeResolver.create(options).endpointResolver(vertx);
+    try {
+      Object state = resolver.resolve(service, new EndpointBuilder<>() {
+        final List<SocketAddress> servers = new ArrayList<>();
+        @Override
+        public EndpointBuilder<List<SocketAddress>, SocketAddress> addServer(SocketAddress server, String key) {
+          servers.add(server);
+          return this;
+        }
+        @Override
+        public List<SocketAddress> build() {
+          return servers;
+        }
+      }).await(20, TimeUnit.SECONDS);
+      assertWaitUntil(() -> proxy.webSockets().size() == 1);
+      resolver.dispose(state);
+      assertWaitUntil(() -> proxy.webSockets().isEmpty());
+    } finally {
+      resolver.close();
+    }
+  }
+
   /*
   @Test
   public void testDispose(TestContext should) throws Exception {
